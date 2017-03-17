@@ -1,0 +1,26 @@
+{
+  "name": "ptt-imgur-fix",
+  "version": "0.0.0",
+  "description": "Make imgur display original image",
+  "keywords": [
+    "userscript",
+    "ptt"
+  ],
+  "homepage": "https://github.com/eight04/ptt-imgur-fix",
+  "bugs": "https://github.com/eight04/ptt-imgur-fix/issues",
+  "license": "MIT",
+  "author": "eight04 <eight04@gmail.com>",
+  "main": "ptt-imgur-fix.user.js",
+  "repository": "eight04/ptt-imgur-fix",
+  "scripts": {
+    "test": "eslint *.js",
+    "preversion": "npm test",
+    "version": "sync-version ptt-imgur-fix.user.js && git add .",
+    "postversion": "git push --follow-tags"
+  },
+  "private": true,
+  "devDependencies": {
+    "eslint": "^3.14.1",
+    "sync-version": "^1.0.0"
+  }
+}
