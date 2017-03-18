@@ -24,5 +24,7 @@ Compat notes
 
 Changelog
 ---------
+* 0.1.1 (Mar 19, 2017)
+	- Compat with chrome.
 * 0.1.0 (Mar 19, 2017)
 	- First release.
