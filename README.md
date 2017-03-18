@@ -15,7 +15,7 @@ Features
 
 Install
 -------
-<https://greasyfork.org/scripts/4949-textarea-plus>
+<https://greasyfork.org/scripts/28264-ptt-imgur-fix>
 
 Compat notes
 ------------
