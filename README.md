@@ -1,7 +1,7 @@
 PTT Imgur Fix
 =============
 
-在 2017/3/17 後，由於 imgur 封鎖來自 ptt.cc 的 referer，站方改用 imgur 所提供的 embed.js 做圖片嵌入。但是嵌入後的圖片是縮圖，反而不如原始嵌入 + [RefControl](https://addons.mozilla.org/zh-tw/firefox/addon/refcontrol/) 來得方便。
+在 2017/3/17 後，由於 imgur 封鎖來自 ptt.cc 的 referer，站方改用 imgur 所提供的 embed.js 做圖片嵌入。但是嵌入後的圖片是縮圖，對於 PC 使用者反而不如原始嵌入來得方便。
 
 參考︰
 
@@ -11,7 +11,7 @@ PTT Imgur Fix
 Features
 --------
 * Disable embed script and use native img tag.
-* Fix gifv links to display gif.
+* Embed gifv links to display gif.
 
 Install
 -------
@@ -24,5 +24,5 @@ Compat notes
 
 Changelog
 ---------
-* 0.1.0
+* 0.1.0 (Mar 19, 2017)
 	- First release.
