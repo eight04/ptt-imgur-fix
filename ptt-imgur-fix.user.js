@@ -24,8 +24,13 @@ document.addEventListener("beforescriptexecute", e => {
 function fixImgur() {
 	var quotes = document.querySelectorAll(".richcontent .imgur-embed-pub");
 	for (var quote of quotes) {
-		var parent = quote.parentNode;
-		parent.innerHTML = `<img src="//i.imgur.com/${quote.dataset.id}.jpg" referrerpolicy="no-referrer">`;
+		quote.parentNode.innerHTML = `<img src="//i.imgur.com/${quote.dataset.id}.jpg" referrerpolicy="no-referrer">`;
+	}
+	
+	var frames = document.querySelectorAll(".richcontent .imgur-embed-iframe-pub");
+	for (var frame of frames) {
+		var id = frame.id.match(/pub-([a-z0-9]+)/i)[1];
+		frame.parentNode.innerHTML = `<img src="//i.imgur.com/${id}.jpg" referrerpolicy="no-referrer">`;
 	}
 }
 
