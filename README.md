@@ -20,7 +20,7 @@ Install
 Compat notes
 ------------
 * If your browser doesn't support [referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy), you need to use an extension to strip referer header, e.g. [RefControl](https://addons.mozilla.org/firefox/addon/refcontrol/).
-* If have installed a request-blocker like [uBlock origin](https://addons.mozilla.org/zh-tw/firefox/addon/ublock-origin/), you can block the request from `ptt.cc` to `https://s.imgur.com/min/embed.js`.
+* If you have installed a request-blocker like [uBlock origin](https://addons.mozilla.org/zh-tw/firefox/addon/ublock-origin/), you can block the request from `ptt.cc` to `https://s.imgur.com/min/embed.js`.
 
 Changelog
 ---------
