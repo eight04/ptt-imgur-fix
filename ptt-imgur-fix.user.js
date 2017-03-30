@@ -181,13 +181,6 @@ function getUrlInfo(url) {
 	};
 }
 
-function getRichInfo(rich) {
-	if (rich.className != "richcontent") {
-		return null;
-	}
-	return getUrlInfo(rich.querySelector("[src]").src);
-}
-
 function createEmbed(info) {
 	if (info.type == "imgur") {
 		return `<img src="//i.imgur.com/${info.id}.jpg" referrerpolicy="no-referrer">`;
