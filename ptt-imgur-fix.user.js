@@ -46,7 +46,7 @@ function processLine(node) {
 		if (node.nodeName == "A") {
 			links.push(node);
 			PROCESSED_LINKS.add(node);
-			node = node.nextSibling;
+			node = node.nextSibling || node.parentNode.nextSibling;
 			continue;
 		}
 		
