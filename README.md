@@ -24,6 +24,8 @@ Compat notes
 
 Changelog
 ---------
+* 0.2.1 (Mar 30, 2017)
+	- Remove unused code.
 * 0.2.0 (Mar 30, 2017)
 	- "gallery" is not a valid imgur id.
 	- Add twitter image, expand to `...:orig`.
