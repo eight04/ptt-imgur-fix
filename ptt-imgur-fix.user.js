@@ -137,7 +137,7 @@ function getLinkInfo(link) {
 
 function getUrlInfo(url) {
 	var match;
-	if ((match = url.match(/\/\/(?:i\.)?imgur\.com\/([a-z0-9]{2,})/i))) {
+	if ((match = url.match(/\/\/(?:i\.)?imgur\.com\/([a-z0-9]{2,})/i)) && match[1] != "gallery") {
 		return {
 			type: "imgur",
 			id: match[1],
