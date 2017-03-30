@@ -106,26 +106,22 @@ function insertRichContent(links, text) {
 	}
 }
 
+// insert richcontent brefore ref.nextSibling
 function createRichContent(links, ref) {
-	var next = ref.nextSibling,
-		nextInfo = getRichInfo(next),
-		link, linkInfo;
-		
-	for (link of links) {
-		linkInfo = getLinkInfo(link);
-		if (nextInfo && nextInfo.type == linkInfo.type && nextInfo.id == linkInfo.id) {
-			ref = next;
-			next = next.nextSibling;
-			nextInfo = getRichInfo(next);
-			continue;
-		}
+	// remove original richcontent
+	while (ref.nextSibling && ref.nextSibling.className == "richcontent") {
+		ref.parentNode.removeChild(ref.nextSibling);
+	}
+	// create our rich content
+	for (var link of links) {
+		var linkInfo = getLinkInfo(link);
 		if (!linkInfo.embedable) {
 			continue;
 		}
 		var richContent = document.createElement("div");
 		richContent.className = "richcontent";
-		// richContent.appendChild(createEmbed(linkInfo));
 		richContent.innerHTML = createEmbed(linkInfo);
+		
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
 		ref = richContent;
 	}
@@ -156,6 +152,14 @@ function getUrlInfo(url) {
 	if ((match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
 		return {
 			type: "youtube",
+			id: match[1],
+			url: url,
+			embedable: true
+		};
+	}
+	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9]+\.(?:jpg|png))/i))) {
+		return {
+			type: "twitter",
 			id: match[1],
 			url: url,
 			embedable: true
@@ -193,6 +197,9 @@ function createEmbed(info) {
 	}
 	if (info.type == "image") {
 		return `<img src="${info.url}">`;
+	}
+	if (info.type == "twitter") {
+		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
 	}
 	throw new Error(`Invalid type: ${info.type}`);
 }
