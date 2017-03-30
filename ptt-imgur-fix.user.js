@@ -141,7 +141,7 @@ function getUrlInfo(url) {
 			embedable: true
 		};
 	}
-	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9]+\.(?:jpg|png))/i))) {
+	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+\.(?:jpg|png))/i))) {
 		return {
 			type: "twitter",
 			id: match[1],
