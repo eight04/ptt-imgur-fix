@@ -24,6 +24,10 @@ Compat notes
 
 Changelog
 ---------
+* 0.2.0 (Mar 30, 2017)
+	- "gallery" is not a valid imgur id.
+	- Add twitter image, expand to `...:orig`.
+	- **Remove original .richcontent element.**
 * 0.1.1 (Mar 19, 2017)
 	- Compat with chrome.
 * 0.1.0 (Mar 19, 2017)
