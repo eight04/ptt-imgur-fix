@@ -21,25 +21,9 @@ document.addEventListener("beforescriptexecute", e => {
 	}
 });
 
-function fixImgur() {
-	var quotes = document.querySelectorAll(".richcontent .imgur-embed-pub");
-	for (var quote of quotes) {
-		quote.parentNode.innerHTML = `<img src="//i.imgur.com/${quote.dataset.id}.jpg" referrerpolicy="no-referrer">`;
-	}
-	
-	var frames = document.querySelectorAll(".richcontent .imgur-embed-iframe-pub");
-	for (var frame of frames) {
-		var id = frame.id.match(/pub-([a-z0-9]+)/i)[1];
-		frame.parentNode.innerHTML = `<img src="//i.imgur.com/${id}.jpg" referrerpolicy="no-referrer">`;
-	}
-}
-
 var PROCESSED_LINKS = new Set;
 
-document.addEventListener("DOMContentLoaded", () => {
-	fixImgur();
-	embedLinks();
-});
+document.addEventListener("DOMContentLoaded", embedLinks);
 
 function embedLinks() {
 	// embed links
@@ -119,7 +103,7 @@ function createRichContent(links, ref) {
 			continue;
 		}
 		var richContent = document.createElement("div");
-		richContent.className = "richcontent";
+		richContent.className = "richcontent ptt-imgur-fix";
 		richContent.innerHTML = createEmbed(linkInfo);
 		
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
