@@ -3,6 +3,7 @@
 // @description	修正 Imgur 在 PTT 上的問題
 // @namespace   eight04.blogspot.com
 // @include     https://www.ptt.cc/bbs/*.html
+// @include     https://www.ptt.cc/man/*.html
 // @version     0.2.1
 // @author		eight
 // @homepage	https://github.com/eight04/ptt-imgur-fix
@@ -21,38 +22,40 @@ document.addEventListener("beforescriptexecute", e => {
 	}
 });
 
-var PROCESSED_LINKS = new Set;
-
 document.addEventListener("DOMContentLoaded", embedLinks);
 
 function embedLinks() {
+	// remove old .richcontent
+	var rich = document.querySelectorAll("#main-content .richcontent");
+	for (var node of rich) {
+		node.parentNode.removeChild(node);
+	}
+	
 	// embed links
-	var links = document.querySelectorAll("#main-content a");
+	var links = document.querySelectorAll("#main-content a"),
+		processed = new Set;
 	for (var link of links) {
-		if (PROCESSED_LINKS.has(link)) {
+		if (processed.has(link) || !getLinkInfo(link).embedable) {
 			continue;
 		}
-		if (!getUrlInfo(link.href).embedable) {
-			continue;
-		}
-		processLine(link);
+		var [links_, lineEnd] = findLinksInSameLine(link);
+		links_.forEach(l => processed.add(l));
+		createRichContent(links_, lineEnd);
 	}
 }
 
-function processLine(node) {
+function findLinksInSameLine(node) {
 	var links = [];
 	
 	while (node) {
 		if (node.nodeName == "A") {
 			links.push(node);
-			PROCESSED_LINKS.add(node);
 			node = node.nextSibling || node.parentNode.nextSibling;
 			continue;
 		}
 		
 		if (node.nodeType == Node.TEXT_NODE && node.nodeValue.includes("\n")) {
-			insertRichContent(links, node);
-			break;
+			return [links, findLineEnd(node)];
 		}
 		
 		if (node.childNodes.length) {
@@ -74,28 +77,24 @@ function processLine(node) {
 	}
 }
 
-function insertRichContent(links, text) {
+function findLineEnd(text) {
 	var index = text.nodeValue.indexOf("\n");
 	if (index == text.nodeValue.length - 1) {
 		while (text.parentNode.id != "main-content") {
 			text = text.parentNode;
 		}
-		createRichContent(links, text);
-	} else {
-		var pre = document.createTextNode("");
-		pre.nodeValue = text.nodeValue.slice(0, index + 1);
-		text.nodeValue = text.nodeValue.slice(index + 1);
-		text.parentNode.insertBefore(pre, text);
-		createRichContent(links, pre);
+		return text;
 	}
+	
+	var pre = document.createTextNode("");
+	pre.nodeValue = text.nodeValue.slice(0, index + 1);
+	text.nodeValue = text.nodeValue.slice(index + 1);
+	text.parentNode.insertBefore(pre, text);
+	return pre;
 }
 
 // insert richcontent brefore ref.nextSibling
 function createRichContent(links, ref) {
-	// remove original richcontent
-	while (ref.nextSibling && ref.nextSibling.className == "richcontent") {
-		ref.parentNode.removeChild(ref.nextSibling);
-	}
 	// create our rich content
 	for (var link of links) {
 		var linkInfo = getLinkInfo(link);
@@ -117,6 +116,7 @@ function getLinkInfo(link) {
 
 function getUrlInfo(url) {
 	var match;
+	// TODO: add m.imgur.com
 	if ((match = url.match(/\/\/(?:i\.)?imgur\.com\/([a-z0-9]{2,})/i)) && match[1] != "gallery") {
 		return {
 			type: "imgur",
