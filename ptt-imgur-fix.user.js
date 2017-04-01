@@ -12,8 +12,21 @@
 // @compatible	firefox
 // @compatible	chrome
 // @run-at		document-start
-// @grant		none
+// @grant		GM_getValue
+// @grant		GM_setValue
+// @grant		GM_registerMenuCommand
+// @require https://greasyfork.org/scripts/7212-gm-config-eight-s-version/code/GM_config%20(eight's%20version).js?version=156587
 // ==/UserScript==
+
+var config;
+
+GM_config.setup({
+	embedYoutube: {
+		label: "Embed youtube video",
+		type: "checkbox",
+		default: true
+	}
+}, () => config = GM_config.get());
 
 document.addEventListener("beforescriptexecute", e => {
 	var url = new URL(e.target.src, location.href);
@@ -124,20 +137,12 @@ function getUrlInfo(url) {
 			embedable: true
 		};
 	}
-	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i))) {
+	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) || (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
 		return {
 			type: "youtube",
 			id: match[1],
 			url: url,
-			embedable: true
-		};
-	}
-	if ((match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
-		return {
-			type: "youtube",
-			id: match[1],
-			url: url,
-			embedable: true
+			embedable: config.embedYoutube
 		};
 	}
 	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+\.(?:jpg|png))/i))) {
