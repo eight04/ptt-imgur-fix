@@ -1,6 +1,8 @@
 PTT Imgur Fix
 =============
 
+一個用於 PTT Web 版的 userscript。
+
 在 2017/3/17 後，由於 imgur 封鎖來自 ptt.cc 的 referer，站方改用 imgur 所提供的 embed.js 做圖片嵌入。但是嵌入後的圖片是縮圖，對於 PC 使用者反而不如原始嵌入來得方便。
 
 參考︰
@@ -12,6 +14,8 @@ Features
 --------
 * Disable embed script and use native img tag.
 * Embed gifv links to display gif.
+* Add ":orig" to embeded twitter image.
+* Remove embeded youtube video.
 
 Install
 -------
@@ -24,6 +28,13 @@ Compat notes
 
 Changelog
 ---------
+* 0.3.0 (Apr 1, 2017)
+	- Fix: sometimes richcontent is not inserted in push content.
+	- Fix: twitter pattern.
+	- Fix: m.imgur.com is not matched.
+	- Refactor, the original richcontent is always removed.
+	- Add embedYoutube option.
+	- 加入精華區 URL.
 * 0.2.1 (Mar 30, 2017)
 	- Remove unused code.
 * 0.2.0 (Mar 30, 2017)
