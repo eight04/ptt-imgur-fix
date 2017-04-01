@@ -18,6 +18,8 @@
 // @require https://greasyfork.org/scripts/7212-gm-config-eight-s-version/code/GM_config%20(eight's%20version).js?version=156587
 // ==/UserScript==
 
+/* global GM_config */
+
 var config;
 
 GM_config.setup({
