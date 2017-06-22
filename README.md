@@ -28,6 +28,8 @@ Compat notes
 
 Changelog
 ---------
+* 0.3.1 (Jun 22, 2017)
+	- Add embed image option.
 * 0.3.0 (Apr 1, 2017)
 	- Fix: sometimes richcontent is not inserted in push content.
 	- Fix: twitter pattern.
