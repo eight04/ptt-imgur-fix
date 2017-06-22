@@ -27,6 +27,11 @@ GM_config.setup({
 		label: "Embed youtube video",
 		type: "checkbox",
 		default: true
+	},
+	embedImage: {
+		label: "Embed image",
+		type: "checkbox",
+		default: true
 	}
 }, () => config = GM_config.get());
 
@@ -136,7 +141,7 @@ function getUrlInfo(url) {
 			type: "imgur",
 			id: match[1],
 			url: url,
-			embedable: true
+			embedable: config.embedImage
 		};
 	}
 	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) || (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
@@ -152,7 +157,7 @@ function getUrlInfo(url) {
 			type: "twitter",
 			id: match[1],
 			url: url,
-			embedable: true
+			embedable: config.embedImage
 		};
 	}
 	if (/^[^?#]+\.(?:jpg|png|gif|jpeg)(?:$|[?#])/i.test(url)) {
@@ -160,7 +165,7 @@ function getUrlInfo(url) {
 			type: "image",
 			id: null,
 			url: url,
-			embedable: true
+			embedable: config.embedImage
 		};
 	}
 	return {
