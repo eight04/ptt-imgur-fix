@@ -43,7 +43,7 @@ GM_config.setup({
 	albumMaxSize: {
 		label: "Maximum number of images to load for an album",
 		type: "number",
-		default: 10
+		default: 5
 	}
 }, () => config = GM_config.get());
 
