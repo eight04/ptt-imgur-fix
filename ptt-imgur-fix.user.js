@@ -39,6 +39,11 @@ GM_config.setup({
 		label: "Embed imgur album. The script would request imgur.com for album info",
 		type: "checkbox",
 		default: false
+	},
+	albumMaxSize: {
+		label: "Maximum number of images to load for an album",
+		type: "number",
+		default: 10
 	}
 }, () => config = GM_config.get());
 
@@ -129,10 +134,10 @@ function createRichContent(links, ref) {
 		}
 		var richContent = document.createElement("div");
 		richContent.className = "richcontent ptt-imgur-fix";
-		const embed = createEmbed(linkInfo);
+		const embed = createEmbed(linkInfo, richContent);
         if (typeof embed === "string") {
             richContent.innerHTML = embed;
-        } else {
+        } else if (embed) {
             richContent.appendChild(embed);
         }
 
@@ -195,7 +200,7 @@ function getUrlInfo(url) {
 	};
 }
 
-function createEmbed(info) {
+function createEmbed(info, container) {
 	if (info.type == "imgur") {
 		return `<img src="//i.imgur.com/${info.id}.jpg" referrerpolicy="no-referrer">`;
 	}
@@ -209,23 +214,48 @@ function createEmbed(info) {
 		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
 	}
 	if (info.type == "imgur-album") {
-		const cont = document.createElement("div");
-        cont.className = "imgur-album";
+		container.textContent = "Loading album...";
 		GM_xmlhttpRequest({
 			method: "GET",
-			url: info.url,
+			url: info.url.replace("://m.", "://"),
 			onload(response) {
+				if (response.status < 200 || response.status >= 300) {
+					container.textContent = `${response.status} ${response.statusText}`;
+					return;
+				}
+				container.textContent = "";
 				const text = response.responseText;
-				const images = JSON.parse(text.match(/album_images":\{.+?(\[.+?\])/)[1]);
-                for (const {hash} of images) {
-                    const img = new Image;
-                    img.referrerPolicy = "no-referrer";
-                    img.src = `//i.imgur.com/${hash}.jpg`;
-                    cont.appendChild(img);
-                }
+				let match;
+                let hashes;
+				if ((match = text.match(/album_images":\{.+?(\[.+?\])/))) {
+                    hashes = JSON.parse(match[1]).map(i => i.hash);
+				} else if ((match = text.match(/\bimage\s*:.+?hash":"([^"]+)/))) {
+					hashes = [match[1]];
+				}
+				if (!hashes) {
+					throw new Error(`Can't find images for ${info.url} (${response.finalUrl})`);
+				}
+				let i = 0;
+				const loadImages = (count = Infinity) => {
+					let html = "";
+					for (; i < hashes.length && count--; i++) {
+						html += `<div class="richcontent"><img src="//i.imgur.com/${hashes[i]}.jpg" referrerpolicy="no-referrer"></div>`;
+					}
+					container.insertAdjacentHTML("beforeend", html);
+				};
+				loadImages(config.albumMaxSize);
+				if (i < hashes.length) {
+					const button = document.createElement("button");
+					button.textContent = `Load all images (${hashes.length - i} more)`;
+					button.addEventListener('click', () => {
+						button.remove();
+						loadImages();
+					});
+					container.appendChild(button);
+				}
 			}
 		});
-		return cont;
+		return;
 	}
 	throw new Error(`Invalid type: ${info.type}`);
 }
