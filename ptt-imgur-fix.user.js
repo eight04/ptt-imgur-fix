@@ -15,7 +15,9 @@
 // @grant		GM_getValue
 // @grant		GM_setValue
 // @grant		GM_registerMenuCommand
+// @grant       GM_xmlhttpRequest
 // @require https://greasyfork.org/scripts/7212-gm-config-eight-s-version/code/GM_config%20(eight's%20version).js?version=156587
+// @connect     imgur.com
 // ==/UserScript==
 
 /* global GM_config */
@@ -32,6 +34,11 @@ GM_config.setup({
 		label: "Embed image",
 		type: "checkbox",
 		default: true
+	},
+	embedAlbum: {
+		label: "Embed imgur album. The script would request imgur.com for album info",
+		type: "checkbox",
+		default: false
 	}
 }, () => config = GM_config.get());
 
@@ -50,7 +57,7 @@ function embedLinks() {
 	for (var node of rich) {
 		node.parentNode.removeChild(node);
 	}
-	
+
 	// embed links
 	var links = document.querySelectorAll("#main-content a"),
 		processed = new Set;
@@ -66,33 +73,32 @@ function embedLinks() {
 
 function findLinksInSameLine(node) {
 	var links = [];
-	
 	while (node) {
 		if (node.nodeName == "A") {
 			links.push(node);
 			node = node.nextSibling || node.parentNode.nextSibling;
 			continue;
 		}
-		
+
 		if (node.nodeType == Node.TEXT_NODE && node.nodeValue.includes("\n")) {
 			return [links, findLineEnd(node)];
 		}
-		
+
 		if (node.childNodes.length) {
 			node = node.childNodes[0];
 			continue;
 		}
-		
+
 		if (node.nextSibling) {
 			node = node.nextSibling;
 			continue;
 		}
-		
+
 		if (node.parentNode.id != "main-content") {
 			node = node.parentNode.nextSibling;
 			continue;
 		}
-		
+
 		throw new Error("Invalid article, missing new line?");
 	}
 }
@@ -105,7 +111,7 @@ function findLineEnd(text) {
 		}
 		return text;
 	}
-	
+
 	var pre = document.createTextNode("");
 	pre.nodeValue = text.nodeValue.slice(0, index + 1);
 	text.nodeValue = text.nodeValue.slice(index + 1);
@@ -123,8 +129,13 @@ function createRichContent(links, ref) {
 		}
 		var richContent = document.createElement("div");
 		richContent.className = "richcontent ptt-imgur-fix";
-		richContent.innerHTML = createEmbed(linkInfo);
-		
+		const embed = createEmbed(linkInfo);
+        if (typeof embed === "string") {
+            richContent.innerHTML = embed;
+        } else {
+            richContent.appendChild(embed);
+        }
+
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
 		ref = richContent;
 	}
@@ -142,6 +153,14 @@ function getUrlInfo(url) {
 			id: match[1],
 			url: url,
 			embedable: config.embedImage
+		};
+	}
+	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/(?:a|gallery)\/([a-z0-9]{2,})/i))) {
+		return {
+			type: "imgur-album",
+			id: match[1],
+			url: url,
+			embedable: config.embedAlbum
 		};
 	}
 	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) || (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
@@ -188,6 +207,25 @@ function createEmbed(info) {
 	}
 	if (info.type == "twitter") {
 		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
+	}
+	if (info.type == "imgur-album") {
+		const cont = document.createElement("div");
+        cont.className = "imgur-album";
+		GM_xmlhttpRequest({
+			method: "GET",
+			url: info.url,
+			onload(response) {
+				const text = response.responseText;
+				const images = JSON.parse(text.match(/album_images":\{.+?(\[.+?\])/)[1]);
+                for (const {hash} of images) {
+                    const img = new Image;
+                    img.referrerPolicy = "no-referrer";
+                    img.src = `//i.imgur.com/${hash}.jpg`;
+                    cont.appendChild(img);
+                }
+			}
+		});
+		return cont;
 	}
 	throw new Error(`Invalid type: ${info.type}`);
 }
