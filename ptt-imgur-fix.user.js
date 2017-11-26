@@ -208,7 +208,7 @@ function createEmbed(info, container) {
 		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/${info.id}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
-		return `<img src="${info.url}">`;
+		return `<img src="${info.url}" referrerpolicy="no-referrer">`;
 	}
 	if (info.type == "twitter") {
 		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
