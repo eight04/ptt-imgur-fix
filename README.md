@@ -28,6 +28,8 @@ Compat notes
 
 Changelog
 ---------
+* 0.4.1 (Nov 26, 2017)
+	- Use `no-referrer` for normal images. Some sites (e.g. gamer.com.tw) restricted referrer from ptt.
 * 0.4.0 (Sep 20, 2017)
 	- Add embed imgur album option.
 * 0.3.1 (Jun 22, 2017)
