@@ -13,9 +13,11 @@ PTT Imgur Fix
 Features
 --------
 * Disable embed script and use native img tag.
-* Embed gifv links to display gif.
+* Embed imgur gifv links to display gif.
+* Embed imgur album (`imgur.com/a/` or `imgur.com/gallery/`). 
 * Add ":orig" to embeded twitter image.
 * Remove embeded youtube video.
+* Customize Youtube player parameters. See https://developers.google.com/youtube/player_parameters#Parameters.
 
 Install
 -------
