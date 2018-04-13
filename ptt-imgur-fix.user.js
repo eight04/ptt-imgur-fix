@@ -30,6 +30,11 @@ GM_config.setup({
 		type: "checkbox",
 		default: true
 	},
+	youtubeParameters: {
+		label: "Youtube player parameters (e.g. rel=0&loop=1)",
+		type: "text",
+		default: ""
+	},
 	embedImage: {
 		label: "Embed image",
 		type: "checkbox",
@@ -205,7 +210,7 @@ function createEmbed(info, container) {
 		return `<img src="//i.imgur.com/${info.id}.jpg" referrerpolicy="no-referrer">`;
 	}
 	if (info.type == "youtube") {
-		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/${info.id}" frameborder="0" allowfullscreen></iframe></div></div>`;
+		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
 		return `<img src="${info.url}" referrerpolicy="no-referrer">`;
