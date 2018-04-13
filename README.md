@@ -30,6 +30,8 @@ Compat notes
 
 Changelog
 ---------
+* 0.4.2 (Apr 13, 2018)
+	- Add: youtube player parameters option.
 * 0.4.1 (Nov 26, 2017)
 	- Use `no-referrer` for normal images. Some sites (e.g. gamer.com.tw) restricted referrer from ptt.
 * 0.4.0 (Sep 20, 2017)
