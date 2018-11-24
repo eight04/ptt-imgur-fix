@@ -30,6 +30,10 @@ Compat notes
 
 Changelog
 ---------
+* 0.4.3 (Nov 24, 2018)
+
+  - Fix: failed to load images in Chrome.
+  
 * 0.4.2 (Apr 13, 2018)
 	- Add: youtube player parameters option.
 * 0.4.1 (Nov 26, 2017)
