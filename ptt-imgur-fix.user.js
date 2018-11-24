@@ -207,13 +207,13 @@ function getUrlInfo(url) {
 
 function createEmbed(info, container) {
 	if (info.type == "imgur") {
-		return `<img src="//i.imgur.com/${info.id}.jpg" referrerpolicy="no-referrer">`;
+		return `<img referrerpolicy="no-referrer" src="//i.imgur.com/${info.id}.jpg">`;
 	}
 	if (info.type == "youtube") {
 		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
-		return `<img src="${info.url}" referrerpolicy="no-referrer">`;
+		return `<img referrerpolicy="no-referrer" src="${info.url}">`;
 	}
 	if (info.type == "twitter") {
 		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
@@ -244,7 +244,7 @@ function createEmbed(info, container) {
 				const loadImages = (count = Infinity) => {
 					let html = "";
 					for (; i < hashes.length && count--; i++) {
-						html += `<div class="richcontent"><img src="//i.imgur.com/${hashes[i]}.jpg" referrerpolicy="no-referrer"></div>`;
+						html += `<div class="richcontent"><img referrerpolicy="no-referrer" src="//i.imgur.com/${hashes[i]}.jpg"></div>`;
 					}
 					container.insertAdjacentHTML("beforeend", html);
 				};
