@@ -49,7 +49,12 @@ GM_config.setup({
 		label: "Maximum number of images to load for an album",
 		type: "number",
 		default: 5
-	}
+	},
+  lazyLoad: {
+    label: "Don't load images until scrolled into view",
+    type: "checkbox",
+    default: true
+  }
 }, () => config = GM_config.get());
 
 document.addEventListener("beforescriptexecute", e => {
@@ -140,15 +145,41 @@ function createRichContent(links, ref) {
 		var richContent = document.createElement("div");
 		richContent.className = "richcontent ptt-imgur-fix";
 		const embed = createEmbed(linkInfo, richContent);
-        if (typeof embed === "string") {
-            richContent.innerHTML = embed;
-        } else if (embed) {
-            richContent.appendChild(embed);
-        }
+    if (typeof embed === "string") {
+      richContent.innerHTML = embed;
+    } else if (embed) {
+      richContent.appendChild(embed);
+    }
+    const lazyTarget = richContent.querySelector("[data-src]");
+    if (lazyTarget) {
+      if (config.lazyLoad) {
+        setupLazyLoad(lazyTarget);
+      } else {
+        lazyTarget.src = lazyTarget.dataset.src;
+      }
+    }
 
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
 		ref = richContent;
 	}
+}
+
+function setupLazyLoad(target) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        target.src = target.dataset.src;
+      } else {
+        const {offsetWidth, offsetHeight} = target;
+        if (offsetWidth) {
+          target.style.width = offsetWidth + "px";
+          target.style.height = offsetHeight + "px";
+        }
+        target.src = "";
+      }
+    }
+  });
+  observer.observe(target);
 }
 
 function getLinkInfo(link) {
@@ -207,16 +238,16 @@ function getUrlInfo(url) {
 
 function createEmbed(info, container) {
 	if (info.type == "imgur") {
-		return `<img referrerpolicy="no-referrer" src="//i.imgur.com/${info.id}.jpg">`;
+		return `<img referrerpolicy="no-referrer" data-src="//i.imgur.com/${info.id}.jpg">`;
 	}
 	if (info.type == "youtube") {
-		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
+		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
-		return `<img referrerpolicy="no-referrer" src="${info.url}">`;
+		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
 	}
 	if (info.type == "twitter") {
-		return `<img src="//pbs.twimg.com/media/${info.id}:orig">`;
+		return `<img data-src="//pbs.twimg.com/media/${info.id}:orig">`;
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";
