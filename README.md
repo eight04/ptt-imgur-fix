@@ -30,32 +30,54 @@ Compat notes
 
 Changelog
 ---------
+
+* 0.5.0 (Mar 21, 2019)
+
+  - **Breaking: add lazy load option.**
+  
 * 0.4.3 (Nov 24, 2018)
 
   - Fix: failed to load images in Chrome.
   
 * 0.4.2 (Apr 13, 2018)
+
 	- Add: youtube player parameters option.
+  
 * 0.4.1 (Nov 26, 2017)
+
 	- Use `no-referrer` for normal images. Some sites (e.g. gamer.com.tw) restricted referrer from ptt.
+  
 * 0.4.0 (Sep 20, 2017)
+
 	- Add embed imgur album option.
+  
 * 0.3.1 (Jun 22, 2017)
+
 	- Add embed image option.
+  
 * 0.3.0 (Apr 1, 2017)
+
 	- Fix: sometimes richcontent is not inserted in push content.
 	- Fix: twitter pattern.
 	- Fix: m.imgur.com is not matched.
 	- Refactor, the original richcontent is always removed.
 	- Add embedYoutube option.
 	- 加入精華區 URL.
+  
 * 0.2.1 (Mar 30, 2017)
+
 	- Remove unused code.
+  
 * 0.2.0 (Mar 30, 2017)
+
 	- "gallery" is not a valid imgur id.
 	- Add twitter image, expand to `...:orig`.
 	- **Remove original .richcontent element.**
+  
 * 0.1.1 (Mar 19, 2017)
+
 	- Compat with chrome.
+  
 * 0.1.0 (Mar 19, 2017)
+
 	- First release.
