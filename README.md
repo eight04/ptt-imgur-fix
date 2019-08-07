@@ -31,6 +31,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.5.1 (Aug 7, 2019)
+
+  - Add: support twitter mobile.
+
 * 0.5.0 (Mar 21, 2019)
 
   - **Breaking: add lazy load option.**
