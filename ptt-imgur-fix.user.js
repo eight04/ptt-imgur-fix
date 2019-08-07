@@ -220,6 +220,14 @@ function getUrlInfo(url) {
 			embedable: config.embedImage
 		};
 	}
+	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)\?.*format=([\w]+)/i))) {
+		return {
+			type: "twitter",
+			id: `${match[1]}.${match[2]}`,
+			url: url,
+			embedable: config.embedImage
+		};
+	}
 	if (/^[^?#]+\.(?:jpg|png|gif|jpeg)(?:$|[?#])/i.test(url)) {
 		return {
 			type: "image",
