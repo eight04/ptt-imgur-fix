@@ -255,7 +255,20 @@ function createEmbed(info, container) {
 		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
 	}
 	if (info.type == "twitter") {
-		return `<img data-src="//pbs.twimg.com/media/${info.id}:orig">`;
+    const image = new Image;
+    const url = `//pbs.twimg.com/media/${info.id}:orig`;
+    const pngUrl = url.replace(/\.jpg\b/, ".png");
+    image.dataset.src = url;
+    image.addEventListener("error", function onerror() {
+      if (!image.currentSrc) {
+        // ignore empty image error
+        return;
+      }
+      image.dataset.src = pngUrl;
+      image.src = pngUrl;
+      image.removeEventListener("error", onerror);
+    });
+		return image;
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";

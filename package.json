@@ -20,7 +20,7 @@
   },
   "private": true,
   "devDependencies": {
-    "eslint": "^5.9.0",
-    "sync-version": "^1.0.0"
+    "eslint": "^7.6.0",
+    "sync-version": "^1.0.1"
   }
 }
