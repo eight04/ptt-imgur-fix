@@ -255,7 +255,12 @@ function createEmbed(info, container) {
 		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
 	}
 	if (info.type == "twitter") {
-		return `<img data-src="//pbs.twimg.com/media/${info.id}:orig">`;
+    const image = new Image;
+    image.src = `//pbs.twimg.com/media/${info.id}:orig`;
+    image.addEventListener("error", () => {
+      image.src = image.src.replace(/\.jpg\b/, ".png");
+    }, {once: true});
+		return image;
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";
