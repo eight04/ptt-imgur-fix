@@ -275,19 +275,15 @@ function createEmbed(info, container) {
     video.autoplay = true;
     video.dataset.src = "";
     video.addEventListener("lazyload", () => {
-      GM_xmlhttpRequest({
-        method: "GET",
-        url,
-        headers: {
-          "Referer": ""
-        },
-        responseType: "blob",
-        onload: r => {
-          const finalUrl = URL.createObjectURL(r.response);
+      fetch(url, {
+        referrerPolicy: "no-referrer"
+      })
+        .then(r => r.blob())
+        .then(response => {
+          const finalUrl = URL.createObjectURL(response);
           video.dataset.src = finalUrl;
           video.src = finalUrl;
-        }
-      })
+        });
     }, {once: true});
     return video;
 	}
