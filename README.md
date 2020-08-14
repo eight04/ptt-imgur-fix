@@ -1,6 +1,8 @@
 PTT Imgur Fix
 =============
 
+[![Build Status](https://travis-ci.com/eight04/ptt-imgur-fix.svg?branch=master)](https://travis-ci.com/eight04/ptt-imgur-fix)
+
 一個用於 PTT Web 版的 userscript。
 
 在 2017/3/17 後，由於 imgur 封鎖來自 ptt.cc 的 referer，站方改用 imgur 所提供的 embed.js 做圖片嵌入。但是嵌入後的圖片是縮圖，對於 PC 使用者反而不如原始嵌入來得方便。
