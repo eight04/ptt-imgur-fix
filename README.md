@@ -31,6 +31,13 @@ Compat notes
 Changelog
 ---------
 
+* 0.6.0 (Aug 14, 2020)
+
+  - Fix: unable to load some galleries.
+  - Fix: sometimes it is unable to load twitter images.
+  - **Breaking: imgur media are loaded according to file extension. the script will load video if the extension is `.mp4`.**
+  - Add: option to load imgur GIF as video.
+
 * 0.5.1 (Aug 7, 2019)
 
   - Add: support twitter mobile.
