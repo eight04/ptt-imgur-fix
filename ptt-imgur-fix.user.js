@@ -45,6 +45,11 @@ GM_config.setup({
 		type: "checkbox",
 		default: false
 	},
+  imgurVideo: {
+    label: "Embed imgur video instead of GIF. Reduce file size",
+    type: "checkbox",
+    default: false
+  },
 	albumMaxSize: {
 		label: "Maximum number of images to load for an album",
 		type: "number",
@@ -152,11 +157,7 @@ function createRichContent(links, ref) {
     }
     const lazyTarget = richContent.querySelector("[data-src]");
     if (lazyTarget) {
-      if (config.lazyLoad) {
-        setupLazyLoad(lazyTarget);
-      } else {
-        lazyTarget.src = lazyTarget.dataset.src;
-      }
+      setupLazyLoad(lazyTarget, !config.lazyLoad);
     }
 
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
@@ -164,22 +165,36 @@ function createRichContent(links, ref) {
 	}
 }
 
-function setupLazyLoad(target) {
+function setupLazyLoad(target, forceLoad = false) {
+  if (forceLoad) {
+    load();
+    return;
+  }
+  
   const observer = new IntersectionObserver(entries => {
     for (const entry of entries) {
       if (entry.isIntersecting) {
-        target.src = target.dataset.src;
+        load();
       } else {
-        const {offsetWidth, offsetHeight} = target;
-        if (offsetWidth) {
-          target.style.width = offsetWidth + "px";
-          target.style.height = offsetHeight + "px";
-        }
-        target.src = "";
+        unload();
       }
     }
   });
   observer.observe(target);
+  
+  function load() {
+    target.src = target.dataset.src;
+    target.dispatchEvent(new CustomEvent("lazyload"));
+  }
+  
+  function unload() {
+    if (target.videoHeight || target.naturalHeight) {
+      const {offsetWidth, offsetHeight} = target;
+      target.style.width = offsetWidth + "px";
+      target.style.height = offsetHeight + "px";
+    }
+    target.src = "";
+  }
 }
 
 function getLinkInfo(link) {
@@ -188,12 +203,13 @@ function getLinkInfo(link) {
 
 function getUrlInfo(url) {
 	var match;
-	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})/i)) && match[1] != "gallery") {
+	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})(\.[a-z0-9]{3})?/i)) && match[1] != "gallery") {
 		return {
 			type: "imgur",
 			id: match[1],
 			url: url,
-			embedable: config.embedImage
+			embedable: config.embedImage,
+      extension: match[2] && match[2].toLowerCase()
 		};
 	}
 	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/(?:a|gallery)\/([a-z0-9]{2,})/i))) {
@@ -246,7 +262,31 @@ function getUrlInfo(url) {
 
 function createEmbed(info, container) {
 	if (info.type == "imgur") {
-		return `<img referrerpolicy="no-referrer" data-src="//i.imgur.com/${info.id}.jpg">`;
+    let extension = info.extension || ".jpg";
+    if (extension === ".gif" && config.imgurVideo) {
+      extension = ".mp4";
+    }
+    const url = `//i.imgur.com/${info.id}${extension}`;
+    if (extension !== ".mp4") {
+      return `<img referrerpolicy="no-referrer" data-src="${url}">`;
+    }
+    const video = document.createElement("video");
+    video.loop = true;
+    video.autoplay = true;
+    video.controls = true;
+    video.dataset.src = "";
+    video.addEventListener("lazyload", () => {
+      fetch(url, {
+        referrerPolicy: "no-referrer"
+      })
+        .then(r => r.blob())
+        .then(response => {
+          const finalUrl = URL.createObjectURL(response);
+          video.dataset.src = finalUrl;
+          video.src = finalUrl;
+        });
+    }, {once: true});
+    return video;
 	}
 	if (info.type == "youtube") {
 		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
