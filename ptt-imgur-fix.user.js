@@ -273,6 +273,7 @@ function createEmbed(info, container) {
     const video = document.createElement("video");
     video.loop = true;
     video.autoplay = true;
+    video.controls = true;
     video.dataset.src = "";
     video.addEventListener("lazyload", () => {
       fetch(url, {
