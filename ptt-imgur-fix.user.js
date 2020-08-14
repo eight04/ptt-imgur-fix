@@ -203,7 +203,7 @@ function getLinkInfo(link) {
 
 function getUrlInfo(url) {
 	var match;
-	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})(\.[a-z]{3})?/i)) && match[1] != "gallery") {
+	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})(\.[a-z0-9]{3})?/i)) && match[1] != "gallery") {
 		return {
 			type: "imgur",
 			id: match[1],
