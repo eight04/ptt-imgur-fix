@@ -325,10 +325,13 @@ function createEmbed(info, container) {
 				let match;
                 let hashes;
 				if ((match = text.match(/album_images":\{.+?(\[.+?\])/))) {
-                    hashes = JSON.parse(match[1]).map(i => i.hash);
+          hashes = JSON.parse(match[1]).map(i => i.hash);
 				} else if ((match = text.match(/\bimage\s*:.+?hash":"([^"]+)/))) {
 					hashes = [match[1]];
-				}
+				} else if ((match = text.match(/<meta property="og:image"[^>]*content="([^"]+)/))) {
+          // https://imgur.com/gallery/uVxFvZf
+          hashes = [match[1].match(/imgur\.com\/(\w+\.\w{3})/)[1]];
+        }
 				if (!hashes) {
 					throw new Error(`Can't find images for ${info.url} (${response.finalUrl})`);
 				}
