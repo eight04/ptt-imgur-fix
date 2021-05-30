@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.6.1 (May 30, 2021)
+
+  - Fix: failed to load jpeg images.
+
 * 0.6.0 (Aug 14, 2020)
 
   - Fix: unable to load some galleries.
