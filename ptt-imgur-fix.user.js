@@ -15,10 +15,42 @@
 // @grant		GM_getValue
 // @grant		GM_setValue
 // @grant		GM_registerMenuCommand
-// @grant       GM_xmlhttpRequest
+// @grant		GM_xmlhttpRequest
+// @grant		GM.registerMenuCommand
+// @grant		GM.xmlhttpRequest
 // @require https://greasyfork.org/scripts/7212-gm-config-eight-s-version/code/GM_config%20(eight's%20version).js?version=156587
 // @connect     imgur.com
 // ==/UserScript==
+
+/* compatible for GreaseMonkey 4.x */
+if (GM_info.scriptHandler == 'Greasemonkey' && GM_info.version.match(/^4\./)) {
+    void function () {
+        this.GM_registerMenuCommand = (...args) => {
+            if (typeof GM.registerMenuCommand == 'function') {
+                GM.registerMenuCommand(...args);
+            }
+            // lack of GM_registerMenuCommand makes no setting ui
+            // but other stuff work.
+            else console.warn('GM_registerMenuCommand not implement');
+        };
+        this.GM_xmlhttpRequest = (...args) => GM.xmlhttpRequest(...args);
+
+        // copy from: https://gist.github.com/arantius/3123124
+        const __GM_STORAGE_PREFIX = [
+            '', GM_info.script.namespace, GM_info.script.name, ''
+        ].join('***');
+        this.GM_getValue = function GM_getValue(aKey, aDefault) {
+            'use strict';
+            let val = localStorage.getItem(__GM_STORAGE_PREFIX + aKey)
+            if (null === val && 'undefined' != typeof aDefault) return aDefault;
+            return val;
+        };
+        this.GM_setValue = function GM_setValue(aKey, aVal) {
+            'use strict';
+            localStorage.setItem(__GM_STORAGE_PREFIX + aKey, aVal);
+        };
+    }();
+}
 
 /* global GM_config */
 
