@@ -12,55 +12,77 @@
 // @compatible	firefox
 // @compatible	chrome
 // @run-at		document-start
-// @grant		GM_getValue
-// @grant		GM_setValue
-// @grant		GM_registerMenuCommand
+// @grant GM_getValue
+// @grant GM.getValue
+// @grant GM_setValue
+// @grant GM.setValue
+// @grant GM_deleteValue
+// @grant GM.deleteValue
+// @grant GM_addValueChangeListener
+// @grant GM_registerMenuCommand
+// @grant GM.registerMenuCommand
 // @grant       GM_xmlhttpRequest
-// @require https://greasyfork.org/scripts/7212-gm-config-eight-s-version/code/GM_config%20(eight's%20version).js?version=156587
+// @require https://github.com/eight04/GM_webextPref/raw/ec4cff1342b2845b20b72b618d249957689cb950/dist/GM_webextPref.user.js
 // @connect     imgur.com
 // ==/UserScript==
 
-/* global GM_config */
+/* global GM_webextPref */
 
-var config;
-
-GM_config.setup({
-	embedYoutube: {
-		label: "Embed youtube video",
-		type: "checkbox",
-		default: true
-	},
-	youtubeParameters: {
-		label: "Youtube player parameters (e.g. rel=0&loop=1)",
-		type: "text",
-		default: ""
-	},
-	embedImage: {
-		label: "Embed image",
-		type: "checkbox",
-		default: true
-	},
-	embedAlbum: {
-		label: "Embed imgur album. The script would request imgur.com for album info",
-		type: "checkbox",
-		default: false
-	},
-  imgurVideo: {
-    label: "Embed imgur video instead of GIF. Reduce file size",
-    type: "checkbox",
-    default: false
+const pref = GM_webextPref({
+  default: {
+    embedYoutube: true,
+    youtubeParameters: "",
+    embedImage: true,
+    embedAlbum: false,
+    albumMaxSize: 5,
+    imgurVideo: false,
+    lazyLoad: true
   },
-	albumMaxSize: {
-		label: "Maximum number of images to load for an album",
-		type: "number",
-		default: 5
-	},
-  lazyLoad: {
-    label: "Don't load images until scrolled into view",
-    type: "checkbox",
-    default: true
-  }
-}, () => config = GM_config.get());
+  body: [
+    {
+      key: "embedImage",
+      label: "Embed image",
+      type: "checkbox",
+    },
+    {
+      key: "embedAlbum",
+      label: "Embed imgur album. The script would request imgur.com for album info",
+      type: "checkbox",
+      children: [
+        {
+          key: "albumMaxSize",
+          label: "Maximum number of images to load for an album",
+          type: "number"
+        }
+      ]
+    },
+    {
+      key: "imgurVideo",
+      label: "Embed imgur video instead of GIF. Reduce file size",
+      type: "checkbox"
+    },
+    {
+      key: "embedYoutube",
+      label: "Embed youtube video",
+      type: "checkbox",
+      children: [
+        {
+          key: "youtubeParameters",
+          label: "Youtube player parameters (e.g. rel=0&loop=1)",
+          type: "text",
+          default: ""
+        }
+      ]
+    },
+    {
+      key: "lazyLoad",
+      label: "Don't load images until scrolled into view",
+      type: "checkbox"
+    }
+  ],
+  getNewScope: () => location.hostname
+  // wip
+})
 
 document.addEventListener("beforescriptexecute", e => {
 	var url = new URL(e.target.src, location.href);
@@ -69,7 +91,22 @@ document.addEventListener("beforescriptexecute", e => {
 	}
 });
 
-document.addEventListener("DOMContentLoaded", embedLinks);
+Promise.all([
+  pref.ready(),
+  domReady()
+])
+  .then(embedLinks)
+  .catch(console.error);
+  
+function domReady() {
+  return new Promise(resolve => {
+    if (document.readyState !== "loading") {
+      resolve();
+      return;
+    }
+    document.addEventListener("DOMContentLoaded", resolve, {once: true});
+  });
+}
 
 function embedLinks() {
 	// remove old .richcontent
@@ -157,7 +194,7 @@ function createRichContent(links, ref) {
     }
     const lazyTarget = richContent.querySelector("[data-src]");
     if (lazyTarget) {
-      setupLazyLoad(lazyTarget, !config.lazyLoad);
+      setupLazyLoad(lazyTarget, !pref.get("lazyLoad"));
     }
 
 		ref.parentNode.insertBefore(richContent, ref.nextSibling);
@@ -208,7 +245,7 @@ function getUrlInfo(url) {
 			type: "imgur",
 			id: match[1],
 			url: url,
-			embedable: config.embedImage,
+			embedable: pref.get("embedImage"),
       extension: match[2] && match[2].toLowerCase()
 		};
 	}
@@ -217,7 +254,7 @@ function getUrlInfo(url) {
 			type: "imgur-album",
 			id: match[1],
 			url: url,
-			embedable: config.embedAlbum
+			embedable: pref.get("embedAlbum")
 		};
 	}
 	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) || (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
@@ -225,7 +262,7 @@ function getUrlInfo(url) {
 			type: "youtube",
 			id: match[1],
 			url: url,
-			embedable: config.embedYoutube
+			embedable: pref.get("embedYoutube")
 		};
 	}
 	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+\.(?:jpg|png))/i))) {
@@ -233,7 +270,7 @@ function getUrlInfo(url) {
 			type: "twitter",
 			id: match[1],
 			url: url,
-			embedable: config.embedImage
+			embedable: pref.get("embedImage")
 		};
 	}
 	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)\?.*format=([\w]+)/i))) {
@@ -241,7 +278,7 @@ function getUrlInfo(url) {
 			type: "twitter",
 			id: `${match[1]}.${match[2]}`,
 			url: url,
-			embedable: config.embedImage
+			embedable: pref.get("embedImage")
 		};
 	}
 	if (/^[^?#]+\.(?:jpg|png|gif|jpeg)(?:$|[?#])/i.test(url)) {
@@ -249,7 +286,7 @@ function getUrlInfo(url) {
 			type: "image",
 			id: null,
 			url: url,
-			embedable: config.embedImage
+			embedable: pref.get("embedImage")
 		};
 	}
 	return {
@@ -263,7 +300,7 @@ function getUrlInfo(url) {
 function createEmbed(info, container) {
 	if (info.type == "imgur") {
     let extension = info.extension || ".jpg";
-    if (extension === ".gif" && config.imgurVideo) {
+    if (extension === ".gif" && pref.get("imgurVideo")) {
       extension = ".mp4";
     }
     const url = `//i.imgur.com/${info.id}${extension}`;
@@ -289,7 +326,7 @@ function createEmbed(info, container) {
     return video;
 	}
 	if (info.type == "youtube") {
-		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}${config.youtubeParameters?`?${config.youtubeParameters}`:''}" frameborder="0" allowfullscreen></iframe></div></div>`;
+		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${pref.get("youtubeParameters")}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
 		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
@@ -343,7 +380,7 @@ function createEmbed(info, container) {
 					}
 					container.insertAdjacentHTML("beforeend", html);
 				};
-				loadImages(config.albumMaxSize);
+				loadImages(pref.get("albumMaxSize"));
 				if (i < hashes.length) {
 					const button = document.createElement("button");
 					button.textContent = `Load all images (${hashes.length - i} more)`;
