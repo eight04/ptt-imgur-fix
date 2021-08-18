@@ -2,8 +2,8 @@
 // @name        PTT Imgur Fix
 // @description	修正 Imgur 在 PTT 上的問題
 // @namespace   eight04.blogspot.com
-// @include     https://www.ptt.cc/bbs/*.html
-// @include     https://www.ptt.cc/man/*.html
+// @match https://www.ptt.cc/bbs/*.html
+// @match https://www.ptt.cc/man/*.html
 // @version     0.6.1
 // @author		eight
 // @homepage	https://github.com/eight04/ptt-imgur-fix
