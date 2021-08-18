@@ -22,14 +22,14 @@
 // @grant GM_registerMenuCommand
 // @grant GM.registerMenuCommand
 // @grant GM_xmlhttpRequest
-// @grant GM.xmlhttpRequest
+// @grant GM.xmlHttpRequest
 // @require https://greasyfork.org/scripts/371339-gm-webextpref/code/GM_webextPref.js?version=961539
 // @connect     imgur.com
 // ==/UserScript==
 
 /* global GM_webextPref */
 
-const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM.xmlhttpRequest;
+const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM.xmlHttpRequest;
 
 const pref = GM_webextPref({
   default: {
@@ -353,39 +353,28 @@ function createEmbed(info, container) {
 		container.textContent = "Loading album...";
 		request({
 			method: "GET",
-			url: info.url.replace("://m.", "://"),
+			url: `https://api.imgur.com/post/v1/albums/${info.id}?client_id=546c25a59c58ad7&include=media`,
+      responseType: "json",
 			onload(response) {
 				if (response.status < 200 || response.status >= 300) {
 					container.textContent = `${response.status} ${response.statusText}`;
 					return;
 				}
 				container.textContent = "";
-				const text = response.responseText;
-				let match;
-                let hashes;
-				if ((match = text.match(/album_images":\{.+?(\[.+?\])/))) {
-          hashes = JSON.parse(match[1]).map(i => i.hash);
-				} else if ((match = text.match(/\bimage\s*:.+?hash":"([^"]+)/))) {
-					hashes = [match[1]];
-				} else if ((match = text.match(/<meta property="og:image"[^>]*content="([^"]+)/))) {
-          // https://imgur.com/gallery/uVxFvZf
-          hashes = [match[1].match(/imgur\.com\/(\w+\.\w{3})/)[1]];
-        }
-				if (!hashes) {
-					throw new Error(`Can't find images for ${info.url} (${response.finalUrl})`);
-				}
+        const urls = response.response.media.map(m => m.url);
+        
 				let i = 0;
 				const loadImages = (count = Infinity) => {
 					let html = "";
-					for (; i < hashes.length && count--; i++) {
-						html += `<div class="richcontent"><img referrerpolicy="no-referrer" src="//i.imgur.com/${hashes[i]}.jpg"></div>`;
+					for (; i < urls.length && count--; i++) {
+						html += `<div class="richcontent"><img referrerpolicy="no-referrer" src="${urls[i]}"></div>`;
 					}
 					container.insertAdjacentHTML("beforeend", html);
 				};
 				loadImages(pref.get("albumMaxSize"));
-				if (i < hashes.length) {
+				if (i < urls.length) {
 					const button = document.createElement("button");
-					button.textContent = `Load all images (${hashes.length - i} more)`;
+					button.textContent = `Load all images (${urls.length - i} more)`;
 					button.addEventListener('click', () => {
 						button.remove();
 						loadImages();
