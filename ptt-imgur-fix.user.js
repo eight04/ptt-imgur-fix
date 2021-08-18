@@ -21,12 +21,15 @@
 // @grant GM_addValueChangeListener
 // @grant GM_registerMenuCommand
 // @grant GM.registerMenuCommand
-// @grant       GM_xmlhttpRequest
-// @require https://github.com/eight04/GM_webextPref/raw/ec4cff1342b2845b20b72b618d249957689cb950/dist/GM_webextPref.user.js
+// @grant GM_xmlhttpRequest
+// @grant GM.xmlhttpRequest
+// @require https://greasyfork.org/scripts/371339-gm-webextpref/code/GM_webextPref.js?version=961539
 // @connect     imgur.com
 // ==/UserScript==
 
 /* global GM_webextPref */
+
+const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM.xmlhttpRequest;
 
 const pref = GM_webextPref({
   default: {
@@ -80,9 +83,8 @@ const pref = GM_webextPref({
       type: "checkbox"
     }
   ],
-  getNewScope: () => location.hostname
-  // wip
-})
+  navbar: false
+});
 
 document.addEventListener("beforescriptexecute", e => {
 	var url = new URL(e.target.src, location.href);
@@ -349,7 +351,7 @@ function createEmbed(info, container) {
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";
-		GM_xmlhttpRequest({
+		request({
 			method: "GET",
 			url: info.url.replace("://m.", "://"),
 			onload(response) {
