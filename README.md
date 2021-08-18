@@ -17,7 +17,7 @@ Features
 * Disable embed script and use native img tag.
 * Embed imgur gifv links to display gif.
 * Embed imgur album (`imgur.com/a/` or `imgur.com/gallery/`). 
-* Add ":orig" to embeded twitter image.
+* Add ":orig" to embeded twitter image with fallbacks.
 * Remove embeded youtube video.
 * Customize Youtube player parameters. See https://developers.google.com/youtube/player_parameters#Parameters.
 
@@ -32,6 +32,13 @@ Compat notes
 
 Changelog
 ---------
+
+* 0.7.0 (Aug 18, 2021)
+
+  - Fix: fallback to large images in twitter.
+  - Fix: match URL with query.
+  - Fix: failed to load imgur album.
+  - **Change: replace GM_config with GM_webextPref. You will loose the current setting. Support Greasemonkey 4.11.**
 
 * 0.6.1 (May 30, 2021)
 

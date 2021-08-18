@@ -9,8 +9,8 @@
 // @homepage	https://github.com/eight04/ptt-imgur-fix
 // @supportURL	https://github.com/eight04/ptt-imgur-fix/issues
 // @license		MIT
-// @compatible	firefox
-// @compatible	chrome
+// @compatible firefox Tampermonkey, Violentmonkey, Greasemonkey 4.11+
+// @compatible chrome Tampermonkey, Violentmonkey
 // @run-at		document-start
 // @grant GM_getValue
 // @grant GM.getValue
