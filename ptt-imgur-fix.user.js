@@ -335,17 +335,21 @@ function createEmbed(info, container) {
 	}
 	if (info.type == "twitter") {
     const image = new Image;
-    const url = `//pbs.twimg.com/media/${info.id}:orig`;
-    const pngUrl = url.replace(/\.jpg\b/, ".png");
-    image.dataset.src = url;
+    const urls = [
+      `//pbs.twimg.com/media/${info.id}:orig`,
+      `//pbs.twimg.com/media/${info.id.replace(/\.jpg\b/, ".png")}:orig`,
+      `//pbs.twimg.com/media/${info.id}:large`,
+      `//pbs.twimg.com/media/${info.id}`,
+    ];
+    image.dataset.src = urls.shift();
     image.addEventListener("error", function onerror() {
-      if (!image.currentSrc) {
+      if (!image.currentSrc || !urls.length) {
         // ignore empty image error
         return;
       }
-      image.dataset.src = pngUrl;
-      image.src = pngUrl;
-      image.removeEventListener("error", onerror);
+      const newUrl = urls.shift();
+      image.dataset.src = newUrl;
+      image.src = newUrl;
     });
 		return image;
 	}
