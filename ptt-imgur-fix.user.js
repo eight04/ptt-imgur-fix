@@ -97,7 +97,7 @@ Promise.all([
   pref.ready(),
   domReady()
 ])
-  .then(embedLinks)
+  .then(init)
   .catch(console.error);
   
 function domReady() {
@@ -110,7 +110,7 @@ function domReady() {
   });
 }
 
-function embedLinks() {
+function init() {
 	// remove old .richcontent
 	var rich = document.querySelectorAll("#main-content .richcontent");
 	for (var node of rich) {
@@ -128,6 +128,15 @@ function embedLinks() {
 		links_.forEach(l => processed.add(l));
 		createRichContent(links_, lineEnd);
 	}
+  
+  // styling
+  const style = document.createElement("style");
+  style.textContent = `
+    .richcontent video {
+      max-width: 100%;
+    }
+  `;
+  document.documentElement.append(style);
 }
 
 function findLinksInSameLine(node) {
