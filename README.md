@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.7.1 (Oct 24, 2021)
+
+  - Fix: video overflow in mobile devices.
+
 * 0.7.0 (Aug 18, 2021)
 
   - Fix: fallback to large images in twitter.
