@@ -214,6 +214,7 @@ const lazyLoader = (() => {
   }
   
   function hideTarget(target) {
+    if (target.state !== 'complete') return;
     target.el.src = 'about:blank';
   }
 })();
