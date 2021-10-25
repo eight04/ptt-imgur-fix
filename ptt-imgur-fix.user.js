@@ -86,6 +86,138 @@ const pref = GM_webextPref({
   navbar: false
 });
 
+const lazyLoader = (() => {
+  const xo = new IntersectionObserver(onXoChange, {rootMargin: "30% 0px 30% 0px"});
+  // FIXME: memory leak, we don't delete items from the map
+  const elMap = new Map;
+  pref.on('change', onPrefChange);
+  
+  return {add};
+  
+  function onPrefChange(changes) {
+    if (changes.lazyLoad == null) return;
+    
+    if (changes.lazyLoad) {
+      for (const target of elMap.values()) {
+        xo.observe(target.el);
+      }
+    } else {
+      xo.disconnect();
+      for (const target of elMap.values()) {
+        target.visible = true;
+        loadTarget(target);
+        showTarget(target);
+      }
+    }
+  }
+  
+  function add(el) {
+    if (elMap.has(el)) return;
+    
+    const target = {
+      el,
+      state: 'pause',
+      visible: false,
+      finalUrl: '',
+      mask: null,
+      width: 0,
+      height: 0
+    };
+    
+    elMap.set(el, target);
+    
+    if (pref.get('lazyLoad')) {
+      xo.observe(target.el);
+    } else {
+      target.visible = true;
+      loadTarget(target);
+    }
+  }
+  
+  function onXoChange(entries) {
+    for (const entry of entries) {
+      const target = elMap.get(entry.target);
+      if (entry.isIntersecting) {
+        target.visible = true;
+        loadTarget(target);
+        showTarget(target);
+      } else {
+        target.visible = false;
+        hideTarget(target);
+      }
+    }
+  }
+  
+  async function loadTarget(target) {
+    if (target.state !== 'pause') return;
+    target.state = 'loading';
+    try {
+      if (target.el.tagName === 'IMG') {
+        target.el.src = target.el.dataset.src;
+        await loadMedia(target.el);
+        target.finalUrl = target.el.src;
+      } else if (target.el.tagName === 'VIDEO') {
+        const r = await fetch(target.el.dataset.src, {
+          referrerPolicy: "no-referrer"
+        });
+        const b = await r.blob();
+        const finalUrl = URL.createObjectURL(b);
+        target.finalUrl = finalUrl;
+        target.el.src = finalUrl;
+        await loadMedia(target.el);
+      } else {
+        throw new Error(`Invalid media: ${target.el.tagName}`);
+      }
+      target.state = 'complete';
+      const {offsetWidth: w, offsetHeight: h} = target.el;
+      target.el.style.width = `${w}px`;
+      target.el.style.aspectRatio = `${w} / ${h}`;
+      if (target.visible) {
+        showTarget(target);
+      } else {
+        hideTarget(target);
+      }
+    } catch (err) {
+      console.error(err);
+      target.state = 'pause';
+    }
+  }
+  
+  function loadMedia(el) {
+    return new Promise((resolve, reject) => {
+      el.addEventListener('load', onLoad);
+      el.addEventListener('loadeddata', onLoad);
+      el.addEventListener('error', onError);
+      
+      function cleanup() {
+        el.removeEventListener('load', onLoad);
+        el.removeEventListener('loadeddata', onLoad);
+        el.removeEventListener('error', onError);
+      }
+      
+      function onLoad() {
+        resolve();
+        cleanup();
+      }
+      
+      function onError(e) {
+        console.error(e);
+        reject(new Error(`failed loading media: ${el.src}`));
+        cleanup();
+      }
+    });
+  }
+  
+  function showTarget(target) {
+    if (target.state !== 'complete') return;
+    target.el.src = target.finalUrl;
+  }
+  
+  function hideTarget(target) {
+    target.el.src = 'about:blank';
+  }
+})();
+
 document.addEventListener("beforescriptexecute", e => {
 	var url = new URL(e.target.src, location.href);
 	if (url.hostname.endsWith("imgur.com")) {
@@ -100,6 +232,7 @@ Promise.all([
   .then(init)
   .catch(console.error);
   
+
 function domReady() {
   return new Promise(resolve => {
     if (document.readyState !== "loading") {
@@ -126,7 +259,16 @@ function init() {
 		}
 		var [links_, lineEnd] = findLinksInSameLine(link);
 		links_.forEach(l => processed.add(l));
-		createRichContent(links_, lineEnd);
+    for (const link of links_) {
+      const linkInfo = getLinkInfo(link);
+      if (!linkInfo.embedable) {
+        continue;
+      }
+      const richContent = createRichContent(linkInfo);
+      lineEnd.parentNode.insertBefore(richContent, lineEnd.nextSibling);
+      lineEnd = richContent;
+    }
+		// createRichContent(links_, lineEnd);
 	}
   
   // styling
@@ -187,62 +329,20 @@ function findLineEnd(text) {
 	return pre;
 }
 
-// insert richcontent brefore ref.nextSibling
-function createRichContent(links, ref) {
-	// create our rich content
-	for (var link of links) {
-		var linkInfo = getLinkInfo(link);
-		if (!linkInfo.embedable) {
-			continue;
-		}
-		var richContent = document.createElement("div");
-		richContent.className = "richcontent ptt-imgur-fix";
-		const embed = createEmbed(linkInfo, richContent);
-    if (typeof embed === "string") {
-      richContent.innerHTML = embed;
-    } else if (embed) {
-      richContent.appendChild(embed);
-    }
-    const lazyTarget = richContent.querySelector("[data-src]");
-    if (lazyTarget) {
-      setupLazyLoad(lazyTarget, !pref.get("lazyLoad"));
-    }
-
-		ref.parentNode.insertBefore(richContent, ref.nextSibling);
-		ref = richContent;
-	}
-}
-
-function setupLazyLoad(target, forceLoad = false) {
-  if (forceLoad) {
-    load();
-    return;
+function createRichContent(linkInfo) {
+  const richContent = document.createElement("div");
+  richContent.className = "richcontent ptt-imgur-fix";
+  const embed = createEmbed(linkInfo, richContent);
+  if (typeof embed === "string") {
+    richContent.innerHTML = embed;
+  } else if (embed) {
+    richContent.appendChild(embed);
   }
-  
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        load();
-      } else {
-        unload();
-      }
-    }
-  });
-  observer.observe(target);
-  
-  function load() {
-    target.src = target.dataset.src;
-    target.dispatchEvent(new CustomEvent("lazyload"));
+  const lazyTarget = richContent.querySelector("[data-src]");
+  if (lazyTarget) {
+    lazyLoader.add(lazyTarget);
   }
-  
-  function unload() {
-    if (target.videoHeight || target.naturalHeight) {
-      const {offsetWidth, offsetHeight} = target;
-      target.style.width = offsetWidth + "px";
-      target.style.height = offsetHeight + "px";
-    }
-    target.src = "";
-  }
+  return richContent;
 }
 
 function getLinkInfo(link) {
@@ -322,18 +422,7 @@ function createEmbed(info, container) {
     video.loop = true;
     video.autoplay = true;
     video.controls = true;
-    video.dataset.src = "";
-    video.addEventListener("lazyload", () => {
-      fetch(url, {
-        referrerPolicy: "no-referrer"
-      })
-        .then(r => r.blob())
-        .then(response => {
-          const finalUrl = URL.createObjectURL(response);
-          video.dataset.src = finalUrl;
-          video.src = finalUrl;
-        });
-    }, {once: true});
+    video.dataset.src = url;
     return video;
 	}
 	if (info.type == "youtube") {
@@ -378,11 +467,11 @@ function createEmbed(info, container) {
         
 				let i = 0;
 				const loadImages = (count = Infinity) => {
-					let html = "";
+          const els = [];
 					for (; i < urls.length && count--; i++) {
-						html += `<div class="richcontent"><img referrerpolicy="no-referrer" src="${urls[i]}"></div>`;
+            els.push(createRichContent(getUrlInfo(urls[i])));
 					}
-					container.insertAdjacentHTML("beforeend", html);
+					container.append(...els);
 				};
 				loadImages(pref.get("albumMaxSize"));
 				if (i < urls.length) {
