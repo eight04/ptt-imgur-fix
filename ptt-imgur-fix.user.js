@@ -152,7 +152,7 @@ const lazyLoader = (() => {
     if (target.state !== 'pause') return;
     target.state = 'loading';
     try {
-      if (target.el.tagName === 'IMG') {
+      if (target.el.tagName === 'IMG' || target.el.tagName === 'IFRAME') {
         target.el.src = target.el.dataset.src;
         await loadMedia(target.el);
         target.finalUrl = target.el.src;
@@ -209,13 +209,16 @@ const lazyLoader = (() => {
   }
   
   function showTarget(target) {
-    if (target.state !== 'complete') return;
+    if (target.state !== 'complete' && target.state !== 'hidden') return;
     target.el.src = target.finalUrl;
+    target.state = 'shown';
   }
   
   function hideTarget(target) {
-    if (target.state !== 'complete') return;
+    if (target.state !== 'complete' && target.state !== 'shown') return;
+    if (target.el.tagName === 'IFRAME') return;
     target.el.src = 'about:blank';
+    target.state = 'hidden';
   }
 })();
 
