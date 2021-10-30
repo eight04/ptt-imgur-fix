@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.7.2 (Oct 30, 2021)
+
+  - Enhance: rewrite lazy loader.
+
 * 0.7.1 (Oct 24, 2021)
 
   - Fix: video overflow in mobile devices.
