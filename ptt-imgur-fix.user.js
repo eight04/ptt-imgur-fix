@@ -372,7 +372,11 @@ function getUrlInfo(url) {
 			embedable: pref.get("embedAlbum")
 		};
 	}
-	if ((match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) || (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i))) {
+	if (
+    (match = url.match(/\/\/www\.youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) ||
+    (match = url.match(/\/\/(?:youtu\.be|www\.youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i)) ||
+    (match = url.match(/youtube\.com\/shorts\/([a-z0-9_-]{9,12})/i))
+  ) {
 		return {
 			type: "youtube",
 			id: match[1],
