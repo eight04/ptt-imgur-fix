@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.7.3 (Nov 5, 2021)
+
+  = Add: support youtube shorts.
+
 * 0.7.2 (Oct 30, 2021)
 
   - Enhance: rewrite lazy loader.
