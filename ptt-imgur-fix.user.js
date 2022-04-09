@@ -434,7 +434,7 @@ function createEmbed(info, container) {
     return video;
 	}
 	if (info.type == "youtube") {
-		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${pref.get("youtubeParameters")}" frameborder="0" allowfullscreen></iframe></div></div>`;
+		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${mergeParams(new URL(info.url).search, pref.get("youtubeParameters"))}" frameborder="0" allowfullscreen></iframe></div></div>`;
 	}
 	if (info.type == "image") {
 		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
@@ -496,4 +496,19 @@ function createEmbed(info, container) {
 		return;
 	}
 	throw new Error(`Invalid type: ${info.type}`);
+}
+
+function mergeParams(origSearch, userSearch) {
+  const result = new URLSearchParams();
+  for (const [key, value] of new URLSearchParams(origSearch)) {
+    if (key === "t") {
+      result.set("start", value);
+    } else {
+      result.set(key, value);
+    }
+  }
+  for (const [key, value] of new URLSearchParams(userSearch)) {
+    result.set(key, value);
+  }
+  return result.toString();
 }
