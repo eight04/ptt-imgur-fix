@@ -172,6 +172,11 @@ const lazyLoader = (() => {
       const {offsetWidth: w, offsetHeight: h} = target.el;
       target.el.style.width = `${w}px`;
       target.el.style.aspectRatio = `${w} / ${h}`;
+      // Waterfox
+      // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/115795
+      if (!CSS.supports("aspect-ratio", "1/1")) {
+        target.el.style.height = `${h}px`;
+      }
       if (target.visible) {
         showTarget(target);
       } else {
