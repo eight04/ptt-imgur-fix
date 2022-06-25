@@ -36,6 +36,7 @@ Changelog
 * 0.7.4 (Jun 25, 2022)
 
   - Fix: image flickering on waterfox.
+  - Fix: support timestamp in youtube embed.
 
 * 0.7.3 (Nov 5, 2021)
 
