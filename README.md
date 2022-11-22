@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.7.5 (Nov 23, 2022)
+
+  - Fix: don't pollute history on Chrome when iframe is loaded (#23)
+
 * 0.7.4 (Jun 25, 2022)
 
   - Fix: image flickering on waterfox.
