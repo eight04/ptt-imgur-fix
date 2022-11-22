@@ -153,9 +153,9 @@ const lazyLoader = (() => {
     target.state = 'loading';
     try {
       if (target.el.tagName === 'IMG' || target.el.tagName === 'IFRAME') {
-        target.el.src = target.el.dataset.src;
+        setSrc(target.el, target.el.dataset.src);
         await loadMedia(target.el);
-        target.finalUrl = target.el.src;
+        target.finalUrl = target.el.dataset.src;
       } else if (target.el.tagName === 'VIDEO') {
         const r = await fetch(target.el.dataset.src, {
           referrerPolicy: "no-referrer"
@@ -215,14 +215,14 @@ const lazyLoader = (() => {
   
   function showTarget(target) {
     if (target.state !== 'complete' && target.state !== 'hidden') return;
-    target.el.src = target.finalUrl;
+    setSrc(target.el, target.finalUrl)
     target.state = 'shown';
   }
   
   function hideTarget(target) {
     if (target.state !== 'complete' && target.state !== 'shown') return;
     if (target.el.tagName === 'IFRAME') return;
-    target.el.src = 'about:blank';
+    setSrc(target.el, 'about:blank');
     target.state = 'hidden';
   }
 })();
@@ -516,4 +516,13 @@ function mergeParams(origSearch, userSearch) {
     result.set(key, value);
   }
   return result.toString();
+}
+
+function setSrc(el, url) {
+  try {
+    // https://github.com/eight04/ptt-imgur-fix/issues/22
+    el.contentWindow.location.replace(url);
+  } catch (err) {
+    el.src = url;
+  }
 }
