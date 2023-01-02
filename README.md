@@ -33,6 +33,11 @@ Compat notes
 Changelog
 ---------
 
+* 0.7.6 (Jan 2, 2023)
+
+  - Fix: detect youtube live URL.
+  - Fix: support imgur gifv extension.
+
 * 0.7.5 (Nov 23, 2022)
 
   - Fix: don't pollute history on Chrome when iframe is loaded (#23)
