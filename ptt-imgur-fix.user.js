@@ -427,6 +427,9 @@ function createEmbed(info, container) {
     if (extension === ".gif" && pref.get("imgurVideo")) {
       extension = ".mp4";
     }
+    if (extension === ".gifv") {
+      extension = pref.get("imgurVideo") ? ".mp4" : ".gif";
+    }
     const url = `//i.imgur.com/${info.id}${extension}`;
     if (extension !== ".mp4") {
       return `<img referrerpolicy="no-referrer" data-src="${url}">`;
