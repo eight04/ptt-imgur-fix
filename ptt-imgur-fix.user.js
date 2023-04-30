@@ -440,6 +440,7 @@ function createEmbed(info, container) {
     video.autoplay = true;
     video.controls = true;
     video.dataset.src = url;
+    video.muted = true;
     return video;
 	}
 	if (info.type == "youtube") {
