@@ -33,6 +33,11 @@ Compat notes
 Changelog
 ---------
 
+* 0.8.0 (Apr 30, 2023)
+
+  - Change: mute autoplay videos.
+  - Change: match youtube URLs without `www`.
+
 * 0.7.6 (Jan 2, 2023)
 
   - Fix: detect youtube live URL.
