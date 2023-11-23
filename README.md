@@ -33,6 +33,11 @@ Compat notes
 Changelog
 ---------
 
+* 0.8.1 (Nov 23, 2023)
+
+  - Fix: remove max width and height.
+  - Fix: unable to display witter webp images.
+
 * 0.8.0 (Apr 30, 2023)
 
   - Change: mute autoplay videos.
