@@ -1,7 +1,7 @@
 PTT Imgur Fix
 =============
 
-[![Build Status](https://travis-ci.com/eight04/ptt-imgur-fix.svg?branch=master)](https://travis-ci.com/eight04/ptt-imgur-fix)
+[![.github/workflows/build.yml](https://github.com/eight04/ptt-imgur-fix/actions/workflows/build.yml/badge.svg)](https://github.com/eight04/ptt-imgur-fix/actions/workflows/build.yml)
 
 一個用於 PTT Web 版的 userscript。
 
