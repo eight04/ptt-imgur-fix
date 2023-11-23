@@ -252,7 +252,20 @@ function domReady() {
   });
 }
 
+function createStyle(css) {
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
 function init() {
+  createStyle(`
+    .ptt-imgur-fix,
+    .ptt-imgur-fix img {
+      max-height: none;
+      max-width: 100%;
+    }
+  `)
 	// remove old .richcontent
 	var rich = document.querySelectorAll("#main-content .richcontent");
 	for (var node of rich) {
