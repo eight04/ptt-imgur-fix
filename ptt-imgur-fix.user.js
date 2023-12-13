@@ -182,15 +182,9 @@ const lazyLoader = (() => {
       }
       target.state = 'complete';
       const {offsetWidth: w, offsetHeight: h} = target.el;
-      target.el.style.width = `${w}px`;
       target.el.style.aspectRatio = `${w} / ${h}`;
-      // Waterfox
-      // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/115795
-      if (!CSS.supports("aspect-ratio", "1/1")) {
-        target.el.style.height = `${h}px`;
-      }
       if (target.visible) {
-        showTarget(target);
+        showTarget(target, false);
       } else {
         hideTarget(target);
       }
@@ -225,15 +219,30 @@ const lazyLoader = (() => {
     });
   }
   
-  function showTarget(target) {
+  function showTarget(target, useSrc = true) {
     if (target.state !== 'complete' && target.state !== 'hidden') return;
-    setSrc(target.el, target.finalUrl)
+    if (target.el.style.width) {
+      target.el.style.width = '';
+      target.el.style.height = '';
+    }
+    if (useSrc) {
+      setSrc(target.el, target.finalUrl);
+    }
     target.state = 'shown';
   }
   
   function hideTarget(target) {
     if (target.state !== 'complete' && target.state !== 'shown') return;
     if (target.el.tagName === 'IFRAME') return;
+    const {offsetWidth: w, offsetHeight: h} = target.el;
+    if (w && h) {
+      target.el.style.width = `${w}px`;
+      // Waterfox
+      // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/115795
+      if (!CSS.supports("aspect-ratio", "1/1")) {
+        target.el.style.height = `${h}px`;
+      }
+    }
     setSrc(target.el, 'about:blank');
     target.state = 'hidden';
   }
