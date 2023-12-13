@@ -33,6 +33,11 @@ Compat notes
 Changelog
 ---------
 
+* 0.8.2 (Dec 13, 2023)
+
+  - Add: make max width and height configurable.
+  - Fix: don't freeze image size after loading.
+
 * 0.8.1 (Nov 23, 2023)
 
   - Fix: remove max width and height.
