@@ -39,7 +39,9 @@ const pref = GM_webextPref({
     embedAlbum: false,
     albumMaxSize: 5,
     imgurVideo: false,
-    lazyLoad: true
+    lazyLoad: true,
+    maxWidth: "100%",
+    maxHeight: "none",
   },
   body: [
     {
@@ -81,6 +83,16 @@ const pref = GM_webextPref({
       key: "lazyLoad",
       label: "Don't load images until scrolled into view",
       type: "checkbox"
+    },
+    {
+      key: "maxWidth",
+      label: "Maximum width of image",
+      type: "text",
+    },
+    {
+      key: "maxHeight",
+      label: "Maximum height of image",
+      type: "text",
     }
   ],
   navbar: false
@@ -260,10 +272,13 @@ function createStyle(css) {
 
 function init() {
   createStyle(`
-    .ptt-imgur-fix,
-    .ptt-imgur-fix img {
-      max-height: none;
+    .ptt-imgur-fix {
       max-width: 100%;
+      max-height: none;
+    }
+    .ptt-imgur-fix img {
+      max-height: ${pref.get("maxHeight")};
+      max-width: ${pref.get("maxWidth")};
     }
   `)
 	// remove old .richcontent
