@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.8.3 (Dec 15, 2023)
+
+  - Fix: set maxWidth and maxHeight for video and iframe.
+
 * 0.8.2 (Dec 13, 2023)
 
   - Add: make max width and height configurable.
