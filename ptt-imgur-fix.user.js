@@ -4,7 +4,7 @@
 // @namespace   eight04.blogspot.com
 // @match https://www.ptt.cc/bbs/*.html
 // @match https://www.ptt.cc/man/*.html
-// @version     0.8.2
+// @version     0.8.3
 // @author		eight
 // @homepage	https://github.com/eight04/ptt-imgur-fix
 // @supportURL	https://github.com/eight04/ptt-imgur-fix/issues
