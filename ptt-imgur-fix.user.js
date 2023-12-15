@@ -282,12 +282,14 @@ function createStyle(css) {
 function init() {
   createStyle(`
     .ptt-imgur-fix {
-      max-width: 100%;
+      max-width: ${pref.get("maxWidth")};
       max-height: none;
     }
-    .ptt-imgur-fix img {
+    .ptt-imgur-fix img,
+    .ptt-imgur-fix video,
+    .ptt-imgur-fix iframe {
+      max-width: 100%;
       max-height: ${pref.get("maxHeight")};
-      max-width: ${pref.get("maxWidth")};
     }
   `)
 	// remove old .richcontent
@@ -316,15 +318,6 @@ function init() {
     }
 		// createRichContent(links_, lineEnd);
 	}
-  
-  // styling
-  const style = document.createElement("style");
-  style.textContent = `
-    .richcontent video {
-      max-width: 100%;
-    }
-  `;
-  document.documentElement.append(style);
 }
 
 function findLinksInSameLine(node) {
