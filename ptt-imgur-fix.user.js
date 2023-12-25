@@ -193,7 +193,7 @@ const lazyLoader = (() => {
       target.state = 'pause';
     }
   }
-  
+
   function loadMedia(el) {
     return new Promise((resolve, reject) => {
       el.addEventListener('load', onLoad);
@@ -218,15 +218,18 @@ const lazyLoader = (() => {
       }
     });
   }
-  
+
   function showTarget(target, useSrc = true) {
     if (target.state !== 'complete' && target.state !== 'hidden') return;
-    if (target.el.style.width) {
-      target.el.style.width = '';
-      target.el.style.height = '';
-    }
     if (useSrc) {
       setSrc(target.el, target.finalUrl);
+      loadMedia(target.el)
+        .then(() => {
+          if (target.el.style.width) {
+            target.el.style.width = '';
+            target.el.style.height = '';
+          }
+        });
     }
     target.state = 'shown';
   }
@@ -246,6 +249,7 @@ const lazyLoader = (() => {
     setSrc(target.el, 'about:blank');
     target.state = 'hidden';
   }
+
 })();
 
 document.addEventListener("beforescriptexecute", e => {
