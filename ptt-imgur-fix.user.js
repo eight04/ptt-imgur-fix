@@ -493,15 +493,21 @@ function createEmbed(info, container) {
       `//pbs.twimg.com/media/${info.id}`,
     ];
     image.dataset.src = urls.shift();
-    image.addEventListener("error", function onerror() {
-      if (!image.currentSrc || !urls.length) {
-        // ignore empty image error
+    const onerror = function onerror() {
+      if (!urls.length || image.src !== image.dataset.src) {
+        // not loaded yet
         return;
       }
       const newUrl = urls.shift();
       image.dataset.src = newUrl;
       image.src = newUrl;
-    });
+    };
+    const onload = () => {
+      image.removeEventListener("error", onerror);
+      image.removeEventListener("load", onload);
+    }
+    image.addEventListener("error", onerror);
+    image.addEventListener("load", onload);
 		return image;
 	}
 	if (info.type == "imgur-album") {
