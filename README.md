@@ -33,6 +33,11 @@ Compat notes
 Changelog
 ---------
 
+* 0.8.4 (May 16, 2024)
+
+  - Fix: stop retrying twitter images after loaded.
+  - Fix: don't remove width/height until the image is loaded.
+
 * 0.8.3 (Dec 15, 2023)
 
   - Fix: set maxWidth and maxHeight for video and iframe.
