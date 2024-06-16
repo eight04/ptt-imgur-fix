@@ -494,7 +494,7 @@ function createEmbed(info, container) {
     ];
     image.dataset.src = urls.shift();
     const onerror = function onerror() {
-      if (!urls.length || image.src !== image.dataset.src) {
+      if (!urls.length || !image.src.endsWith(image.dataset.src)) {
         // not loaded yet
         return;
       }
