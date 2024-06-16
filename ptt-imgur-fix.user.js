@@ -37,6 +37,7 @@ const pref = GM_webextPref({
     youtubeParameters: "",
     embedImage: true,
     embedAlbum: false,
+    embedVideo: true,
     albumMaxSize: 5,
     imgurVideo: false,
     lazyLoad: true,
@@ -47,6 +48,11 @@ const pref = GM_webextPref({
     {
       key: "embedImage",
       label: "Embed image",
+      type: "checkbox",
+    },
+    {
+      key: "embedVideo",
+      label: "Embed video",
       type: "checkbox",
     },
     {
@@ -449,6 +455,14 @@ function getUrlInfo(url) {
 			embedable: pref.get("embedImage")
 		};
 	}
+  if (/.*\.(?:mp4|webm|ogg)(?:$|[?#])/i.test(url)) {
+    return {
+      type: "video",
+      id: null,
+      url: url,
+      embedable: pref.get("embedVideo")
+    };
+  }
 	return {
 		type: "url",
 		id: null,
@@ -484,6 +498,12 @@ function createEmbed(info, container) {
 	if (info.type == "image") {
 		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
 	}
+  if (info.type == "video") {
+    const video = document.createElement("video");
+    video.controls = true;
+    video.dataset.src = info.url;
+    return video;
+  }
 	if (info.type == "twitter") {
     const image = new Image;
     const urls = [
