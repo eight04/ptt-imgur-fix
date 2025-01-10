@@ -4,6 +4,7 @@
 // @namespace   eight04.blogspot.com
 // @match https://www.ptt.cc/bbs/*.html
 // @match https://www.ptt.cc/man/*.html
+// @match https://term.ptt.cc/
 // @version     0.8.4
 // @author		eight
 // @homepage	https://github.com/eight04/ptt-imgur-fix
@@ -24,6 +25,7 @@
 // @grant GM_xmlhttpRequest
 // @grant GM.xmlHttpRequest
 // @require https://greasyfork.org/scripts/371339-gm-webextpref/code/GM_webextPref.js?version=961539
+// @require https://cdnjs.cloudflare.com/ajax/libs/sentinel-js/0.0.7/sentinel.min.js
 // @connect     imgur.com
 // ==/UserScript==
 
@@ -33,6 +35,7 @@ const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM
 
 const pref = GM_webextPref({
   default: {
+    term: true,
     embedYoutube: true,
     youtubeParameters: "",
     embedImage: true,
@@ -45,6 +48,11 @@ const pref = GM_webextPref({
     maxHeight: "none",
   },
   body: [
+    // {
+    //   key: "term",
+    //   label: "Enable on term.ptt.cc",
+    //   type: "checkbox"
+    // },
     {
       key: "embedImage",
       label: "Embed image",
@@ -106,8 +114,7 @@ const pref = GM_webextPref({
 
 const lazyLoader = (() => {
   const xo = new IntersectionObserver(onXoChange, {rootMargin: "30% 0px 30% 0px"});
-  // FIXME: memory leak, we don't delete items from the map
-  const elMap = new Map;
+  const elMap = new WeakMap;
   pref.on('change', onPrefChange);
   
   return {add};
@@ -143,6 +150,7 @@ const lazyLoader = (() => {
     };
     
     elMap.set(el, target);
+    el.classList.add('lazy-target');
     
     if (pref.get('lazyLoad')) {
       xo.observe(target.el);
@@ -202,11 +210,13 @@ const lazyLoader = (() => {
 
   function loadMedia(el) {
     return new Promise((resolve, reject) => {
+      el.classList.add('lazy-load-start');
       el.addEventListener('load', onLoad);
       el.addEventListener('loadeddata', onLoad);
       el.addEventListener('error', onError);
       
       function cleanup() {
+        el.classList.add('lazy-load-end');
         el.removeEventListener('load', onLoad);
         el.removeEventListener('loadeddata', onLoad);
         el.removeEventListener('error', onError);
@@ -272,7 +282,6 @@ Promise.all([
   .then(init)
   .catch(console.error);
   
-
 function domReady() {
   return new Promise(resolve => {
     if (document.readyState !== "loading") {
@@ -301,7 +310,85 @@ function init() {
       max-width: 100%;
       max-height: ${pref.get("maxHeight")};
     }
+    .lazy-target:not(.lazy-load-end) {
+      /* give them a size so that we don't load them all at once */
+      height: 50vh;
+    }
+    span[type=bbsrow] .richcontent {
+      display: flex;
+      justify-content: center;
+      .resize-container {
+        flex-grow: 1;
+      }
+      iframe {
+        aspect-ratio: 16 / 9;
+        width: 100%;
+      }
+    }
   `)
+  if (location.hostname === "term.ptt.cc") {
+    if (pref.get("term")) {
+      initTerm();
+    }
+  } else {
+    initWeb();
+  }
+}
+
+function initTerm() {
+  const selector = "span[type=bbsrow] a:not(.embeded)";
+  detectEasyReading({
+    on: () => sentinel.on(selector, onLink),
+    off: () => sentinel.off(selector)
+  });
+  
+  function onLink(node) {
+    node.classList.add("embeded");
+    if (node.href) {
+      const linkInfo = getLinkInfo(node);
+      if (linkInfo.embedable) {
+        const richContent = createRichContent(linkInfo);
+        const bbsRowDiv = node.closest("span[type=bbsrow] > div");
+        bbsRowDiv.children[1].replaceWith(richContent);
+      }
+    }
+  }
+}
+
+function waitElement(selector) {
+  return new Promise(resolve => {
+    const id = setInterval(() => {
+      const el = document.querySelector(selector);
+      if (el) {
+        clearInterval(id);
+        resolve(el);
+      }
+    }, 1000);
+  });
+}
+
+async function detectEasyReading({on, off}) {
+  let state = false;
+  const easyReadingLastRow = await waitElement("#easyReadingLastRow")
+  // const easyReadingLastRow = document.querySelector("#easyReadingLastRow");
+  const observer = new MutationObserver(onMutations);
+  observer.observe(easyReadingLastRow, {attributes: true, attributeFilter: ["style"]});
+
+  function onMutations() {
+    const newState = easyReadingLastRow.style.display === "block";
+    if (newState === state) {
+      return;
+    }
+    if (newState) {
+      on();
+    } else {
+      off();
+    }
+    state = newState;
+  }
+}
+
+function initWeb() {
 	// remove old .richcontent
 	var rich = document.querySelectorAll("#main-content .richcontent");
 	for (var node of rich) {
