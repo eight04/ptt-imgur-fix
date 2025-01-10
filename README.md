@@ -33,6 +33,10 @@ Compat notes
 Changelog
 ---------
 
+* 0.9.1 (Jan 11, 2025)
+
+  - Fix: multiple links in one line.
+
 * 0.9.0 (Jan 11, 2025)
 
   - Add: support term.ptt.cc.
