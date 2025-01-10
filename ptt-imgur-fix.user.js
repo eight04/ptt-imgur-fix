@@ -29,7 +29,7 @@
 // @connect     imgur.com
 // ==/UserScript==
 
-/* global GM_webextPref */
+/* global GM_webextPref sentinel */
 
 const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM.xmlHttpRequest;
 

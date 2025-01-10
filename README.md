@@ -33,6 +33,12 @@ Compat notes
 Changelog
 ---------
 
+* 0.9.0 (Jan 11, 2025)
+
+  - Add: support term.ptt.cc.
+  - Add: embed video.
+  - Fix: twitter image retry.
+
 * 0.8.4 (May 16, 2024)
 
   - Fix: stop retrying twitter images after loaded.
