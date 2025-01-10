@@ -349,7 +349,11 @@ function initTerm() {
       if (linkInfo.embedable) {
         const richContent = createRichContent(linkInfo);
         const bbsRowDiv = node.closest("span[type=bbsrow] > div");
-        bbsRowDiv.children[1].replaceWith(richContent);
+        if (bbsRowDiv.children[1].classList.contains("richcontent")) {
+          bbsRowDiv.appendChild(richContent);
+        } else {
+          bbsRowDiv.children[1].replaceWith(richContent);
+        }
       }
     }
   }
