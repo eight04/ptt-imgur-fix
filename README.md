@@ -40,6 +40,10 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.2 (Jan 12, 2025)
+
+  - Fix: error when lazyload is disabled.
+
 * 0.9.1 (Jan 11, 2025)
 
   - Fix: multiple links in one line.
