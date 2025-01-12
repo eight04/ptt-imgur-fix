@@ -48,11 +48,6 @@ const pref = GM_webextPref({
     maxHeight: "none",
   },
   body: [
-    // {
-    //   key: "term",
-    //   label: "Enable on term.ptt.cc",
-    //   type: "checkbox"
-    // },
     {
       key: "embedImage",
       label: "Embed image",
@@ -107,7 +102,7 @@ const pref = GM_webextPref({
       key: "maxHeight",
       label: "Maximum height of image",
       type: "text",
-    }
+    },
   ],
   navbar: false
 });

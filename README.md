@@ -25,10 +25,17 @@ Install
 -------
 <https://greasyfork.org/scripts/28264-ptt-imgur-fix>
 
-Compat notes
-------------
-* If your browser doesn't support [referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy), you need to use an extension to strip referer header, e.g. [RefControl](https://addons.mozilla.org/firefox/addon/refcontrol/).
-* If you have installed a request-blocker like [uBlock origin](https://addons.mozilla.org/zh-tw/firefox/addon/ublock-origin/), you can block the request from `ptt.cc` to `https://s.imgur.com/min/embed.js`.
+Referer 導致的圖片讀取錯誤
+--------------------------
+
+雖然此腳本有使用 [referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy) 來嘗試解決 referer 的問題，但這不適用以下兩種情況︰
+
+1. 舊版瀏覽器不支援 referrerPolicy，包括 Firefox<50, Chrome<52, Edge<79。
+2. 在 term.ptt.cc 上，由於瀏覽器會重用舊的連線，referrerPolicy 並不會生效。
+
+解決方法︰
+
+安裝一個可以移除 referer 的擴充套件（例如 [Referer Control](https://addons.mozilla.org/zh-TW/firefox/addon/referercontrol/)）並檔掉從 https://term.ptt.cc  出去的 referer。
 
 Changelog
 ---------
