@@ -109,10 +109,17 @@ const pref = GM_webextPref({
 
 const lazyLoader = (() => {
   const xo = new IntersectionObserver(onXoChange, {rootMargin: "30% 0px 30% 0px"});
-  const elMap = new WeakMap;
+  const elMap = new Map;
   pref.on('change', onPrefChange);
   
-  return {add};
+  return {add, clear};
+
+  function clear() {
+    for (const target of elMap.values()) {
+      xo.unobserve(target.el);
+    }
+    elMap.clear();
+  }
   
   function onPrefChange(changes) {
     if (changes.lazyLoad == null) return;
@@ -334,7 +341,10 @@ function initTerm() {
   const selector = "span[type=bbsrow] a:not(.embeded)";
   detectEasyReading({
     on: () => sentinel.on(selector, onLink),
-    off: () => sentinel.off(selector)
+    off: () => {
+      sentinel.off(selector);
+      lazyLoader.clear();
+    }
   });
   
   function onLink(node) {
