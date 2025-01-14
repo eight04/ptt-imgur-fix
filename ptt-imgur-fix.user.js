@@ -543,7 +543,7 @@ function getUrlInfo(url) {
 			embedable: pref.get("embedImage")
 		};
 	}
-	if (/^[^?#]+\.(?:jpg|png|gif|jpeg)(?:$|[?#])/i.test(url)) {
+	if (/^[^?#]+\.(?:jpg|png|gif|jpeg|webp|apng|avif|jfif|pjpeg|pjp|svg)(?:$|[?#])/i.test(url)) {
 		return {
 			type: "image",
 			id: null,
