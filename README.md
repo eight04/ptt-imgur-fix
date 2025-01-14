@@ -40,6 +40,10 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.3 (Jan 14, 2025)
+
+  - Add: support .svg, .avif, .webp.
+
 * 0.9.2 (Jan 12, 2025)
 
   - Fix: error when lazyload is disabled.
