@@ -5,7 +5,7 @@
 // @match https://www.ptt.cc/bbs/*.html
 // @match https://www.ptt.cc/man/*.html
 // @match https://term.ptt.cc/
-// @version     0.9.2
+// @version     0.9.3
 // @author		eight
 // @homepage	https://github.com/eight04/ptt-imgur-fix
 // @supportURL	https://github.com/eight04/ptt-imgur-fix/issues
