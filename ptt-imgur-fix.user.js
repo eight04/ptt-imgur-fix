@@ -314,7 +314,7 @@ function init() {
     }
     .lazy-target:not(.lazy-load-end) {
       /* give them a size so that we don't load them all at once */
-      height: 50vh;
+      min-height: 50vh;
     }
     span[type=bbsrow] .richcontent {
       display: flex;
