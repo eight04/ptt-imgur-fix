@@ -40,6 +40,10 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.5 (Jan 19, 2025)
+
+  - Fix: remove default contents under the link in term.ptt.cc.
+
 * 0.9.4 (Jan 15, 2025)
 
   - Fix: use `min-height` during loading.
