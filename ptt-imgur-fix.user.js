@@ -351,14 +351,18 @@ function initTerm() {
     node.classList.add("embeded");
     if (node.href) {
       const linkInfo = getLinkInfo(node);
+      const bbsRowDiv = node.closest("span[type=bbsrow] > div");
+      const hasDefaultContent = !bbsRowDiv.children[1].classList.contains("richcontent");
       if (linkInfo.embedable) {
         const richContent = createRichContent(linkInfo);
-        const bbsRowDiv = node.closest("span[type=bbsrow] > div");
-        if (bbsRowDiv.children[1].classList.contains("richcontent")) {
+        if (!hasDefaultContent) {
           bbsRowDiv.appendChild(richContent);
         } else {
           bbsRowDiv.children[1].replaceWith(richContent);
         }
+      } else if (hasDefaultContent) {
+        // remove default content under links
+        bbsRowDiv.children[1].innerHTML = "";
       }
     }
   }
