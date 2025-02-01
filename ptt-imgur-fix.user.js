@@ -165,6 +165,10 @@ const lazyLoader = (() => {
   function onXoChange(entries) {
     for (const entry of entries) {
       const target = elMap.get(entry.target);
+      if (!target) {
+        // unobserved element
+        continue;
+      }
       if (entry.isIntersecting) {
         target.visible = true;
         loadTarget(target);
