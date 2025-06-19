@@ -40,6 +40,11 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.6 (Jun 20, 2025)
+
+  - Add: handle `meee.com.tw` url.
+  - Fix: undefined error in xo handler.
+
 * 0.9.5 (Jan 19, 2025)
 
   - Fix: remove default contents under the link in term.ptt.cc.

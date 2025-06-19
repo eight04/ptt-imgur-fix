@@ -551,6 +551,15 @@ function getUrlInfo(url) {
 			embedable: pref.get("embedImage")
 		};
 	}
+  if ((match = url.match(/\bmeee\.com\.tw\/(\w+)(\.\w+)?/))) {
+    const ext = match[2] || ".jpg";
+    return {
+      type: "meee",
+      id: `${match[1]}${ext}`,
+      url: url,
+      embedable: pref.get("embedImage"),
+    }
+  }
 	if (/^[^?#]+\.(?:jpg|png|gif|jpeg|webp|apng|avif|jfif|pjpeg|pjp|svg)(?:$|[?#])/i.test(url)) {
 		return {
 			type: "image",
@@ -670,6 +679,9 @@ function createEmbed(info, container) {
 		});
 		return;
 	}
+  if (info.type === "meee") {
+    return `<img data-src="https://i.meee.com.tw/${info.id}">`;
+  }
 	throw new Error(`Invalid type: ${info.type}`);
 }
 
