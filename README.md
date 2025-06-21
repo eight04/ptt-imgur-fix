@@ -40,6 +40,10 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.8 (Jun 21, 2025)
+
+  - Fix: failed loading twitter images.
+
 * 0.9.7 (Jun 21, 2025)
 
   - Add: srcset loader.
