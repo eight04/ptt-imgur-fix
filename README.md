@@ -40,6 +40,11 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.7 (Jun 21, 2025)
+
+  - Add: srcset loader.
+  - Add: option to fetch filename extension from imeee.com.tw.
+
 * 0.9.6 (Jun 20, 2025)
 
   - Add: handle `meee.com.tw` url.
