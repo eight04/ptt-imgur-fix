@@ -642,7 +642,7 @@ function createEmbed(info, container) {
       `//pbs.twimg.com/media/${info.id}:large`,
       `//pbs.twimg.com/media/${info.id}`,
     ];
-    return `<img data-src data-srcset="${urls.join(", ")}"`;
+    return `<img data-src data-srcset="${urls.join(", ")}">`;
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";
