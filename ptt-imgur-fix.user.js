@@ -146,6 +146,7 @@ const lazyLoader = (() => {
       state: 'pause',
       visible: false,
       finalUrl: '',
+      candidateUrls: el.dataset.srcset ? el.dataset.srcset.split(/\s*,\s*/) : [],
       mask: null,
       width: 0,
       height: 0
@@ -185,8 +186,19 @@ const lazyLoader = (() => {
     target.state = 'loading';
     try {
       if (target.el.tagName === 'IMG' || target.el.tagName === 'IFRAME') {
+        if (target.candidateUrls.length) {
+          // use the first candidate URL
+          target.el.dataset.src = target.candidateUrls.shift();
+        }
         setSrc(target.el, target.el.dataset.src);
-        await loadMedia(target.el);
+        try {
+          await loadMedia(target.el);
+        } catch (err) {
+          if (target.candidateUrls.length) {
+            setTimeout(() => loadTarget(target), 100);
+          }
+          throw err;
+        }
         target.finalUrl = target.el.dataset.src;
       } else if (target.el.tagName === 'VIDEO') {
         const r = await fetch(target.el.dataset.src, {
@@ -552,10 +564,10 @@ function getUrlInfo(url) {
 		};
 	}
   if ((match = url.match(/\bmeee\.com\.tw\/(\w+)(\.\w+)?/))) {
-    const ext = match[2] || ".jpg";
     return {
       type: "meee",
-      id: `${match[1]}${ext}`,
+      id: match[1],
+      ext: match[2] || "",
       url: url,
       embedable: pref.get("embedImage"),
     }
@@ -618,30 +630,13 @@ function createEmbed(info, container) {
     return video;
   }
 	if (info.type == "twitter") {
-    const image = new Image;
     const urls = [
       `//pbs.twimg.com/media/${info.id}:orig`,
       `//pbs.twimg.com/media/${info.id.replace(/\.jpg\b/, ".png")}:orig`,
       `//pbs.twimg.com/media/${info.id}:large`,
       `//pbs.twimg.com/media/${info.id}`,
     ];
-    image.dataset.src = urls.shift();
-    const onerror = function onerror() {
-      if (!urls.length || !image.src.endsWith(image.dataset.src)) {
-        // not loaded yet
-        return;
-      }
-      const newUrl = urls.shift();
-      image.dataset.src = newUrl;
-      image.src = newUrl;
-    };
-    const onload = () => {
-      image.removeEventListener("error", onerror);
-      image.removeEventListener("load", onload);
-    }
-    image.addEventListener("error", onerror);
-    image.addEventListener("load", onload);
-		return image;
+    return `<img data-src data-srcset="${urls.join(", ")}"`;
 	}
 	if (info.type == "imgur-album") {
 		container.textContent = "Loading album...";
@@ -680,7 +675,13 @@ function createEmbed(info, container) {
 		return;
 	}
   if (info.type === "meee") {
-    return `<img data-src="https://i.meee.com.tw/${info.id}">`;
+    if (info.ext) {
+      return `<img data-src="https://i.meee.com.tw/${info.id}${info.ext}">`;
+    }
+    // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/302188
+    const exts = [".jpg", ".jpeg", ".png", ".gif"];
+    const urls = exts.map(ext => `https://i.meee.com.tw/${info.id}${ext}`);
+    return `<img data-src data-srcset="${urls.join(", ")}">`;
   }
 	throw new Error(`Invalid type: ${info.type}`);
 }
