@@ -37,6 +37,7 @@ const pref = GM_webextPref({
   default: {
     term: true,
     embedYoutube: true,
+    imeeeSniffExt: false,
     youtubeParameters: "",
     embedImage: true,
     embedAlbum: false,
@@ -87,6 +88,11 @@ const pref = GM_webextPref({
           default: ""
         }
       ]
+    },
+    {
+      key: "imeeeSniffExt",
+      label: "Fetch filename extension from imeee",
+      type: "checkbox",
     },
     {
       key: "lazyLoad",
@@ -680,8 +686,31 @@ function createEmbed(info, container) {
     }
     // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/302188
     const exts = [".jpg", ".jpeg", ".png", ".gif"];
-    const urls = exts.map(ext => `https://i.meee.com.tw/${info.id}${ext}`);
-    return `<img data-src data-srcset="${urls.join(", ")}">`;
+    if (!pref.get("imeeeSniffExt")) {
+      const urls = exts.map(ext => `https://i.meee.com.tw/${info.id}${ext}`);
+      return `<img data-src data-srcset="${urls.join(", ")}">`;
+    }
+    container.textContent = "Loading imeee image...";
+    request({
+      method: "GET",
+      url: `https://meee.com.tw/${info.id}`,
+      onload(response) {
+        if (response.status < 200 || response.status >= 300) {
+          container.textContent = `${response.status} ${response.statusText}`;
+          return;
+        }
+        const html = response.responseText;
+        const match = html.match(new RegExp(String.raw`${info.id}(\.\w+)`));
+        const ext = match?.[1];
+        if (!exts.includes(ext)) {
+          container.textContent = `Unsupported image type: ${ext}`;
+          return;
+        }
+        const url = `https://i.meee.com.tw/${info.id}${ext}`;
+        container.replaceWith(createRichContent(getUrlInfo(url)));
+      }
+    });
+    return;
   }
 	throw new Error(`Invalid type: ${info.type}`);
 }
