@@ -37,7 +37,7 @@ const pref = GM_webextPref({
   default: {
     term: true,
     embedYoutube: true,
-    imeeeSniffExt: false,
+    meeeSniffExt: false,
     youtubeParameters: "",
     embedImage: true,
     embedAlbum: false,
@@ -90,8 +90,8 @@ const pref = GM_webextPref({
       ]
     },
     {
-      key: "imeeeSniffExt",
-      label: "Fetch filename extension from imeee",
+      key: "meeeSniffExt",
+      label: "Fetch filename extension from meee",
       type: "checkbox",
     },
     {
@@ -255,6 +255,7 @@ const lazyLoader = (() => {
         console.error(e);
         reject(new Error(`failed loading media: ${el.src}`));
         cleanup();
+        el.dispatchEvent(new CustomEvent('loadMediaError'));
       }
     });
   }
@@ -681,35 +682,44 @@ function createEmbed(info, container) {
 		return;
 	}
   if (info.type === "meee") {
-    if (info.ext) {
-      return `<img data-src="https://i.meee.com.tw/${info.id}${info.ext}">`;
-    }
     // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/302188
-    const exts = [".jpg", ".jpeg", ".png", ".gif"];
-    if (!pref.get("imeeeSniffExt")) {
+    let exts = [".jpg", ".jpeg", ".png", ".gif"];
+    if (info.ext) {
+      exts = [...new Set([info.ext, ...exts])];
+    }
+    if (!pref.get("meeeSniffExt")) {
       const urls = exts.map(ext => `https://i.meee.com.tw/${info.id}${ext}`);
       return `<img data-src data-srcset="${urls.join(", ")}">`;
     }
-    container.textContent = "Loading imeee image...";
-    request({
-      method: "GET",
-      url: `https://meee.com.tw/${info.id}`,
-      onload(response) {
-        if (response.status < 200 || response.status >= 300) {
-          container.textContent = `${response.status} ${response.statusText}`;
-          return;
+    const sniffAndLoad = () => {
+      container.textContent = "Loading meee image...";
+      request({
+        method: "GET",
+        url: `https://meee.com.tw/${info.id}`,
+        onload(response) {
+          if (response.status < 200 || response.status >= 300) {
+            container.textContent = `${response.status} ${response.statusText}`;
+            return;
+          }
+          const html = response.responseText;
+          const match = html.match(new RegExp(String.raw`${info.id}(\.\w+)`));
+          const ext = match?.[1];
+          if (!exts.includes(ext)) {
+            container.textContent = `Unsupported image type: ${ext}`;
+            return;
+          }
+          const url = `https://i.meee.com.tw/${info.id}${ext}`;
+          container.replaceWith(createRichContent(getUrlInfo(url)));
         }
-        const html = response.responseText;
-        const match = html.match(new RegExp(String.raw`${info.id}(\.\w+)`));
-        const ext = match?.[1];
-        if (!exts.includes(ext)) {
-          container.textContent = `Unsupported image type: ${ext}`;
-          return;
-        }
-        const url = `https://i.meee.com.tw/${info.id}${ext}`;
-        container.replaceWith(createRichContent(getUrlInfo(url)));
-      }
-    });
+      });
+    }
+    if (info.ext) {
+      const i = new Image;
+      i.dataset.src = `https://i.meee.com.tw/${info.id}${info.ext}`;
+      i.addEventListener("loadMediaError", sniffAndLoad, {once: true});
+      return i;
+    }
+    sniffAndLoad();
     return;
   }
 	throw new Error(`Invalid type: ${info.type}`);
