@@ -40,6 +40,10 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.9.9 (Jun 22, 2025)
+
+  - Add: try other filename extensions when meee load failed.
+
 * 0.9.8 (Jun 21, 2025)
 
   - Fix: failed loading twitter images.
@@ -47,7 +51,7 @@ Changelog
 * 0.9.7 (Jun 21, 2025)
 
   - Add: srcset loader.
-  - Add: option to fetch filename extension from imeee.com.tw.
+  - Add: option to fetch filename extension from meee.com.tw.
 
 * 0.9.6 (Jun 20, 2025)
 
