@@ -317,6 +317,7 @@ const lazyLoader = (() => {
             const {done, value} = await reader.read();
             if (value) {
               sourceBuffer.appendBuffer(value);
+              await waitEvent(sourceBuffer, 'updateend');
             }
             if (done) {
               mediaSource.endOfStream();
@@ -865,10 +866,9 @@ function setSrc(el, url) {
   if (el.contentWindow) {
     try {
       el.contentWindow.location.replace(url);
+      return;
     } catch (err) {
       console.warn(err);
-      el.src = url;
-      return;
     }
   }
   el.src = url;
