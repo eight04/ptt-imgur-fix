@@ -13,14 +13,14 @@
   "main": "ptt-imgur-fix.user.js",
   "repository": "eight04/ptt-imgur-fix",
   "scripts": {
-    "test": "eslint *.js",
+    "test": "eslint .",
     "preversion": "npm test",
     "version": "sync-version ptt-imgur-fix.user.js && git add .",
     "postversion": "git push --follow-tags"
   },
   "private": true,
   "devDependencies": {
-    "eslint": "^7.6.0",
-    "sync-version": "^1.0.1"
+    "eslint": "^9.38.0",
+    "sync-version": "^1.1.0"
   }
 }

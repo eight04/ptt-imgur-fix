@@ -862,10 +862,14 @@ function mergeParams(origSearch, userSearch) {
 }
 
 function setSrc(el, url) {
-  try {
-    // https://github.com/eight04/ptt-imgur-fix/issues/22
-    el.contentWindow.location.replace(url);
-  } catch (err) {
-    el.src = url;
+  if (el.contentWindow) {
+    try {
+      el.contentWindow.location.replace(url);
+    } catch (err) {
+      console.warn(err);
+      el.src = url;
+      return;
+    }
   }
+  el.src = url;
 }
