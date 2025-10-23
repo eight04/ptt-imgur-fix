@@ -186,38 +186,21 @@ const lazyLoader = (() => {
       }
     }
   }
-  
+
   async function loadTarget(target) {
     if (target.state !== 'pause') return;
     target.state = 'loading';
+    target.el.classList.add('lazy-load-loading');
     try {
+      let finalUrl;
       if (target.el.tagName === 'IMG' || target.el.tagName === 'IFRAME') {
-        if (target.candidateUrls.length) {
-          // use the first candidate URL
-          target.el.dataset.src = target.candidateUrls.shift();
-        }
-        setSrc(target.el, target.el.dataset.src);
-        try {
-          await loadMedia(target.el);
-        } catch (err) {
-          if (target.candidateUrls.length) {
-            setTimeout(() => loadTarget(target), 100);
-          }
-          throw err;
-        }
-        target.finalUrl = target.el.dataset.src;
+        finalUrl = await loadImgOrIframe(target);
       } else if (target.el.tagName === 'VIDEO') {
-        const r = await fetch(target.el.dataset.src, {
-          referrerPolicy: "no-referrer"
-        });
-        const b = await r.blob();
-        const finalUrl = URL.createObjectURL(b);
-        target.finalUrl = finalUrl;
-        target.el.src = finalUrl;
-        await loadMedia(target.el);
+        finalUrl = await loadVideo(target);
       } else {
         throw new Error(`Invalid media: ${target.el.tagName}`);
       }
+      target.finalUrl = finalUrl;
       target.state = 'complete';
       const {offsetWidth: w, offsetHeight: h} = target.el;
       target.el.style.aspectRatio = `${w} / ${h}`;
@@ -226,51 +209,164 @@ const lazyLoader = (() => {
       } else {
         hideTarget(target);
       }
+      target.el.classList.add('lazy-load-end');
     } catch (err) {
       console.error(err);
       target.state = 'pause';
+      target.el.dispatchEvent(new CustomEvent('loadMediaError'));
+    } finally {
+      target.el.classList.remove('lazy-load-loading');
     }
   }
 
-  function loadMedia(el) {
-    return new Promise((resolve, reject) => {
-      el.classList.add('lazy-load-start');
-      el.addEventListener('load', onLoad);
-      el.addEventListener('loadeddata', onLoad);
-      el.addEventListener('error', onError);
-      
-      function cleanup() {
-        el.classList.add('lazy-load-end');
-        el.removeEventListener('load', onLoad);
-        el.removeEventListener('loadeddata', onLoad);
-        el.removeEventListener('error', onError);
+  async function loadImgOrIframe(target) {
+    const urls = target.candidateUrls.length ? target.candidateUrls : [target.el.dataset.src];
+    for (const url of urls) {
+      setSrc(target.el, url);
+      try {
+        await waitEvent(target.el, 'load');
+        return url;
+      } catch (err) {
+        console.warn(err);
+        continue;
       }
+    }
+    throw new Error(`failed loading media: ${urls.join(', ')}`);
+  }
+
+  function findMime(string) {
+    const match = string.match(/content-type:\s*([\w/\-+]+)/i);
+    if (match) {
+      return match[1];
+    }
+    return "";
+  }
+
+  async function loadVideo(target) {
+    const url = target.el.dataset.src;
+    try {
+      target.el.src = url;
+      await waitEvent(target.el, "canplay");
+      return url;
+    } catch (err) {
+      // cors?
+      console.warn(err);
+    }
+    const r = await fetchStreamOrBlob(url);
+    if (r.response.getReader) {
+      // stream
+      const mimeType = findMime(r.responseHeaders);
+      if (MediaSource.isTypeSupported(mimeType)) {
+        try {
+          const mediaSource = new MediaSource();
+          target.el.src = URL.createObjectURL(mediaSource);
+          await loadMediaSource(mediaSource, r.response, mimeType);
+          return target.el.src;
+        } catch (err) {
+          // not supported codec?
+          console.warn(err);
+        }
+      }
+      // fallback to blob
+      r.response = await loadStreamAsBlob(r.response);
+    }
+    if (r.response instanceof Blob) {
+      // Blob
+      target.el.src = URL.createObjectURL(r.response);
+      await waitEvent(target.el, "canplay");
+      return target.el.src;
+    }
+    throw new Error(`unknown response type for video: ${url}`, r.response);
+  }
+
+  function loadStreamAsBlob(stream) {
+    return new Promise((resolve, reject) => {
+      const reader = stream.getReader();
+      const chunks = [];
+      async function read() {
+        try {
+          for (;;) {
+            const {done, value} = await reader.read();
+            if (value) {
+              chunks.push(value);
+            }
+            if (done) {
+              resolve(new Blob(chunks));
+              return;
+            }
+          }
+        } catch (err) {
+          reject(new Error(`failed reading stream: ${err.message || err}`));
+          return;
+        }
+      }
+      read();
+    });
+  }
+
+  function loadMediaSource(mediaSource, stream, mime) {
+    return new Promise((resolve, reject) => {
+      mediaSource.addEventListener('sourceopen', onSourceOpen);
+      mediaSource.addEventListener('error', onError);
       
-      function onLoad() {
-        resolve();
-        cleanup();
+      async function onSourceOpen() {
+        try {
+          const sourceBuffer = mediaSource.addSourceBuffer(mime);
+          const reader = stream.getReader();
+          for (;;) {
+            const {done, value} = await reader.read();
+            if (value) {
+              sourceBuffer.appendBuffer(value);
+            }
+            if (done) {
+              mediaSource.endOfStream();
+              resolve();
+              return;
+            }
+          }
+        } catch (err) {
+          reject(new Error(`failed loading media source: ${err.message || err}`));
+        }
       }
       
       function onError(e) {
-        console.error(e);
-        reject(new Error(`failed loading media: ${el.src}`));
-        cleanup();
-        el.dispatchEvent(new CustomEvent('loadMediaError'));
+        reject(new Error(`failed loading media source: ${e.message || e}`));
       }
     });
   }
 
-  function showTarget(target, useSrc = true) {
+  function waitEvent(el, eventName) {
+    return new Promise((resolve, reject) => {
+      function onEvent() {
+        resolve();
+        cleanup();
+      }
+      function onError(e) {
+        reject(new Error(`failed waiting event ${eventName}: ${e.message || e}`));
+        cleanup();
+      }
+      function cleanup() {
+        el.removeEventListener(eventName, onEvent);
+        el.removeEventListener('error', onError);
+      }
+      el.addEventListener(eventName, onEvent);
+      el.addEventListener('error', onError);
+    });
+  }
+  
+  async function showTarget(target, useSrc = true) {
     if (target.state !== 'complete' && target.state !== 'hidden') return;
     if (useSrc) {
+      // this has to work with image, video, iframe
       setSrc(target.el, target.finalUrl);
-      loadMedia(target.el)
-        .then(() => {
-          if (target.el.style.width) {
-            target.el.style.width = '';
-            target.el.style.height = '';
-          }
-        });
+      // FIXME: why removing width/height?
+      // loadMedia(target.el)
+      //   .then(() => {
+      //     if (target.el.style.width) {
+      //       target.el.style.width = '';
+      //       target.el.style.height = '';
+      //     }
+      //   });
     }
     target.state = 'shown';
   }
@@ -307,6 +403,31 @@ Promise.all([
   .then(init)
   .catch(console.error);
   
+function fetchStreamOrBlob(url) {
+  return new Promise((resolve, reject) => {
+    request({
+      method: "GET",
+      url,
+      headers: {
+        "referer": ""
+      },
+      responseType: GM_xmlhttpRequest.RESPONSE_TYPE_STREAM === 'stream' ? 'stream' : 'blob',
+      onloadstart: r => {
+        if (!r.response) return;
+        if (r.response.getReader) {
+          resolve(r.response);
+        }
+      },
+      onload: r => {
+        resolve(r.response);
+      },
+      onerror: e => {
+        reject(new Error(`failed fetching video: ${url}, ${e}`));
+      }
+    });
+  });
+}
+
 function domReady() {
   return new Promise(resolve => {
     if (document.readyState !== "loading") {
