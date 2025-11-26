@@ -40,6 +40,11 @@ Referer 導致的圖片讀取錯誤
 Changelog
 ---------
 
+* 0.10.0 (Nov 26, 2025)
+
+  - Fix: video blocked by CORS.
+  - Fix: allow twitter URL without format.
+
 * 0.9.9 (Jun 22, 2025)
 
   - Add: try other filename extensions when meee load failed.
