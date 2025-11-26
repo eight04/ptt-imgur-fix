@@ -1,6 +1,6 @@
 {
   "name": "ptt-imgur-fix",
-  "version": "0.9.9",
+  "version": "0.10.0",
   "description": "Make imgur display original image",
   "keywords": [
     "userscript",
