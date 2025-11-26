@@ -683,8 +683,8 @@ function getUrlInfo(url) {
 			embedable: pref.get("embedImage")
 		};
 	}
-	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)\?.*format=([\w]+)/i))) {
-    const ext = match[2] === "webp" ? ".jpg" : `.${match[2]}`;
+	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)(?:\?.*format=([\w]+))?/i))) {
+    const ext = !match[2] || match[2] === "webp" ? ".jpg" : `.${match[2]}`;
 		return {
 			type: "twitter",
 			id: `${match[1]}${ext}`,
