@@ -37,6 +37,13 @@ Referer 導致的圖片讀取錯誤
 
 安裝一個可以移除 referer 的擴充套件（例如 [Referer Control](https://addons.mozilla.org/zh-TW/firefox/addon/referercontrol/)）並檔掉從 https://term.ptt.cc  出去的 referer。
 
+Compatibility
+-------------
+
+* CSS Nesting - Firefox 117
+* aspect-ratio - Firefox 89
+* object-fit - Firefox 36
+
 Changelog
 ---------
 
