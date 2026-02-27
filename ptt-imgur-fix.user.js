@@ -244,13 +244,15 @@ const lazyLoader = (() => {
 
   async function loadVideo(target) {
     const url = target.el.dataset.src;
-    try {
-      target.el.src = url;
-      await waitEvent(target.el, "canplay");
-      return url;
-    } catch (err) {
-      // cors?
-      console.warn(err);
+    if (!target.el.dataset.refererpolicy) {
+      try {
+        target.el.src = url;
+        await waitEvent(target.el, "canplay");
+        return url;
+      } catch (err) {
+        // cors?
+        console.warn(err);
+      }
     }
     const r = await fetchStreamOrBlob(url);
     if (r.response.getReader) {
@@ -416,11 +418,11 @@ function fetchStreamOrBlob(url) {
       onloadstart: r => {
         if (!r.response) return;
         if (r.response.getReader) {
-          resolve(r.response);
+          resolve(r);
         }
       },
       onload: r => {
-        resolve(r.response);
+        resolve(r);
       },
       onerror: e => {
         reject(new Error(`failed fetching video: ${url}, ${e}`));
@@ -743,6 +745,7 @@ function createEmbed(info, container) {
     video.autoplay = true;
     video.controls = true;
     video.dataset.src = url;
+    video.dataset.refererpolicy = "no-referrer";
     video.muted = true;
     return video;
 	}
