@@ -454,8 +454,7 @@ function init() {
       max-height: none;
     }
     .ptt-imgur-fix img,
-    .ptt-imgur-fix video,
-    .ptt-imgur-fix iframe {
+    .ptt-imgur-fix video {
       max-width: 100%;
       max-height: ${pref.get("maxHeight")};
     }
@@ -463,15 +462,27 @@ function init() {
       /* give them a size so that we don't load them all at once */
       min-height: 50vh;
     }
+    .resize-container::before {
+      content: none;
+    }
+    .resize-content {
+      position: static;
+      aspect-ratio: 16 / 9;
+      max-height: ${pref.get("maxHeight")};
+      margin-left: auto;
+      margin-right: auto;
+    }
     span[type=bbsrow] .richcontent {
       display: flex;
+      margin-left: auto;
+      margin-right: auto;
       justify-content: center;
       .resize-container {
         flex-grow: 1;
       }
       iframe {
-        aspect-ratio: 16 / 9;
         width: 100%;
+        height: 100%;
       }
     }
   `)

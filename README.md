@@ -43,7 +43,8 @@ Compatibility
 * CSS Nesting - Firefox 117
 * aspect-ratio - Firefox 89
 * object-fit - Firefox 36
-
+* :has - Firefox 121
+ 
 Changelog
 ---------
 
