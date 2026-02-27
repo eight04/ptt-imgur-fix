@@ -48,6 +48,11 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.1 (Feb 27, 2026)
+
+  - Fix: imgur video doesn't load.
+  - Fix: youtube iframe layout issue.
+
 * 0.10.0 (Nov 26, 2025)
 
   - Fix: video blocked by CORS.
