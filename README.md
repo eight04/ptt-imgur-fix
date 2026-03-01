@@ -44,6 +44,7 @@ Compatibility
 * aspect-ratio - Firefox 89
 * object-fit - Firefox 36
 * :has - Firefox 121
+* ?. - Firefox 74
  
 Changelog
 ---------

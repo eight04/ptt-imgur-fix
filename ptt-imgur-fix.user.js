@@ -255,14 +255,22 @@ const lazyLoader = (() => {
       }
     }
     const r = await fetchStreamOrBlob(url);
-    if (r.response.getReader) {
+    let response = r.response;
+    if (response.getReader) {
       // stream
       const mimeType = findMime(r.responseHeaders);
-      if (MediaSource.isTypeSupported(mimeType)) {
+      let mediaSource;
+      // FIXME: this never works on chrome? since we don't have codec information from the header
+      if (typeof MediaSource !== "undefined" && MediaSource.isTypeSupported(mimeType)) {
+        // FIXME: Firefox never plays the video?
+        // https://www.ptt.cc/bbs/Tech_Job/M.1772118124.A.18A.html
         try {
-          const mediaSource = new MediaSource();
+          mediaSource = new MediaSource();
           target.el.src = URL.createObjectURL(mediaSource);
-          await loadMediaSource(mediaSource, r.response, mimeType);
+          await loadMediaSource(mediaSource, response, mimeType);
+          if (!target.el.duration) {
+            throw new Error("invalid video duration");
+          }
           return target.el.src;
         } catch (err) {
           // not supported codec?
@@ -270,40 +278,20 @@ const lazyLoader = (() => {
         }
       }
       // fallback to blob
-      r.response = await loadStreamAsBlob(r.response);
+      response = await loadStreamAsBlob(response);
     }
-    if (r.response instanceof Blob) {
+    if (response instanceof Blob) {
       // Blob
-      target.el.src = URL.createObjectURL(r.response);
+      target.el.src = URL.createObjectURL(response);
       await waitEvent(target.el, "canplay");
       return target.el.src;
     }
-    throw new Error(`unknown response type for video: ${url}`, r.response);
+    throw new Error(`unknown response type for video: ${url}`, response);
   }
 
-  function loadStreamAsBlob(stream) {
-    return new Promise((resolve, reject) => {
-      const reader = stream.getReader();
-      const chunks = [];
-      async function read() {
-        try {
-          for (;;) {
-            const {done, value} = await reader.read();
-            if (value) {
-              chunks.push(value);
-            }
-            if (done) {
-              resolve(new Blob(chunks));
-              return;
-            }
-          }
-        } catch (err) {
-          reject(new Error(`failed reading stream: ${err.message || err}`));
-          return;
-        }
-      }
-      read();
-    });
+  async function loadStreamAsBlob(stream) {
+      const r = new Response(stream);
+      return await r.blob();
   }
 
   function loadMediaSource(mediaSource, stream, mime) {
@@ -317,6 +305,7 @@ const lazyLoader = (() => {
           const reader = stream.getReader();
           for (;;) {
             const {done, value} = await reader.read();
+            console.log(done, value);
             if (value) {
               sourceBuffer.appendBuffer(value);
               await waitEvent(sourceBuffer, 'updateend');
@@ -393,10 +382,10 @@ const lazyLoader = (() => {
 })();
 
 document.addEventListener("beforescriptexecute", e => {
-	var url = new URL(e.target.src, location.href);
-	if (url.hostname.endsWith("imgur.com")) {
-		e.preventDefault();
-	}
+  var url = new URL(e.target.src, location.href);
+  if (url.hostname.endsWith("imgur.com")) {
+    e.preventDefault();
+  }
 });
 
 Promise.all([
@@ -407,6 +396,9 @@ Promise.all([
   .catch(console.error);
   
 function fetchStreamOrBlob(url) {
+  // FIXME: there is no way to display non-segmented video stream D:
+  // const responseType = GM_xmlhttpRequest.RESPONSE_TYPE_STREAM === 'stream' ? 'stream' : 'blob';
+  const responseType = "blob";
   return new Promise((resolve, reject) => {
     request({
       method: "GET",
@@ -414,11 +406,10 @@ function fetchStreamOrBlob(url) {
       headers: {
         "referer": ""
       },
-      responseType: GM_xmlhttpRequest.RESPONSE_TYPE_STREAM === 'stream' ? 'stream' : 'blob',
-      onloadstart: r => {
-        if (!r.response) return;
-        if (r.response.getReader) {
-          resolve(r);
+      responseType,
+      onreadystatechange: r => {
+        if (r.readyState >= 2 && r.response?.getReader) {
+            resolve(r);
         }
       },
       onload: r => {
@@ -560,21 +551,21 @@ async function detectEasyReading({on, off}) {
 }
 
 function initWeb() {
-	// remove old .richcontent
-	var rich = document.querySelectorAll("#main-content .richcontent");
-	for (var node of rich) {
-		node.parentNode.removeChild(node);
-	}
+  // remove old .richcontent
+  var rich = document.querySelectorAll("#main-content .richcontent");
+  for (var node of rich) {
+    node.parentNode.removeChild(node);
+  }
 
-	// embed links
-	var links = document.querySelectorAll("#main-content a"),
-		processed = new Set;
-	for (var link of links) {
-		if (processed.has(link) || !getLinkInfo(link).embedable) {
-			continue;
-		}
-		var [links_, lineEnd] = findLinksInSameLine(link);
-		links_.forEach(l => processed.add(l));
+  // embed links
+  var links = document.querySelectorAll("#main-content a"),
+    processed = new Set;
+  for (var link of links) {
+    if (processed.has(link) || !getLinkInfo(link).embedable) {
+      continue;
+    }
+    var [links_, lineEnd] = findLinksInSameLine(link);
+    links_.forEach(l => processed.add(l));
     for (const link of links_) {
       const linkInfo = getLinkInfo(link);
       if (!linkInfo.embedable) {
@@ -584,56 +575,56 @@ function initWeb() {
       lineEnd.parentNode.insertBefore(richContent, lineEnd.nextSibling);
       lineEnd = richContent;
     }
-		// createRichContent(links_, lineEnd);
-	}
+    // createRichContent(links_, lineEnd);
+  }
 }
 
 function findLinksInSameLine(node) {
-	var links = [];
-	while (node) {
-		if (node.nodeName == "A") {
-			links.push(node);
-			node = node.nextSibling || node.parentNode.nextSibling;
-			continue;
-		}
+  var links = [];
+  while (node) {
+    if (node.nodeName == "A") {
+      links.push(node);
+      node = node.nextSibling || node.parentNode.nextSibling;
+      continue;
+    }
 
-		if (node.nodeType == Node.TEXT_NODE && node.nodeValue.includes("\n")) {
-			return [links, findLineEnd(node)];
-		}
+    if (node.nodeType == Node.TEXT_NODE && node.nodeValue.includes("\n")) {
+      return [links, findLineEnd(node)];
+    }
 
-		if (node.childNodes.length) {
-			node = node.childNodes[0];
-			continue;
-		}
+    if (node.childNodes.length) {
+      node = node.childNodes[0];
+      continue;
+    }
 
-		if (node.nextSibling) {
-			node = node.nextSibling;
-			continue;
-		}
+    if (node.nextSibling) {
+      node = node.nextSibling;
+      continue;
+    }
 
-		if (node.parentNode.id != "main-content") {
-			node = node.parentNode.nextSibling;
-			continue;
-		}
+    if (node.parentNode.id != "main-content") {
+      node = node.parentNode.nextSibling;
+      continue;
+    }
 
-		throw new Error("Invalid article, missing new line?");
-	}
+    throw new Error("Invalid article, missing new line?");
+  }
 }
 
 function findLineEnd(text) {
-	var index = text.nodeValue.indexOf("\n");
-	if (index == text.nodeValue.length - 1) {
-		while (text.parentNode.id != "main-content") {
-			text = text.parentNode;
-		}
-		return text;
-	}
+  var index = text.nodeValue.indexOf("\n");
+  if (index == text.nodeValue.length - 1) {
+    while (text.parentNode.id != "main-content") {
+      text = text.parentNode;
+    }
+    return text;
+  }
 
-	var pre = document.createTextNode("");
-	pre.nodeValue = text.nodeValue.slice(0, index + 1);
-	text.nodeValue = text.nodeValue.slice(index + 1);
-	text.parentNode.insertBefore(pre, text);
-	return pre;
+  var pre = document.createTextNode("");
+  pre.nodeValue = text.nodeValue.slice(0, index + 1);
+  text.nodeValue = text.nodeValue.slice(index + 1);
+  text.parentNode.insertBefore(pre, text);
+  return pre;
 }
 
 function createRichContent(linkInfo) {
@@ -653,58 +644,58 @@ function createRichContent(linkInfo) {
 }
 
 function getLinkInfo(link) {
-	return getUrlInfo(link.href);
+  return getUrlInfo(link.href);
 }
 
 function getUrlInfo(url) {
-	var match;
-	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})(\.[a-z0-9]{3,4})?/i)) && match[1] != "gallery") {
-		return {
-			type: "imgur",
-			id: match[1],
-			url: url,
-			embedable: pref.get("embedImage"),
+  var match;
+  if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/([a-z0-9]{2,})(\.[a-z0-9]{3,4})?/i)) && match[1] != "gallery") {
+    return {
+      type: "imgur",
+      id: match[1],
+      url: url,
+      embedable: pref.get("embedImage"),
       extension: match[2] && match[2].toLowerCase()
-		};
-	}
-	if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/(?:a|gallery)\/([a-z0-9]{2,})/i))) {
-		return {
-			type: "imgur-album",
-			id: match[1],
-			url: url,
-			embedable: pref.get("embedAlbum")
-		};
-	}
-	if (
+    };
+  }
+  if ((match = url.match(/\/\/(?:[im]\.)?imgur\.com\/(?:a|gallery)\/([a-z0-9]{2,})/i))) {
+    return {
+      type: "imgur-album",
+      id: match[1],
+      url: url,
+      embedable: pref.get("embedAlbum")
+    };
+  }
+  if (
     (match = url.match(/youtube\.com\/watch?.*?v=([a-z0-9_-]{9,12})/i)) ||
     (match = url.match(/(?:youtu\.be|youtube\.com\/embed)\/([a-z0-9_-]{9,12})/i)) ||
     (match = url.match(/youtube\.com\/shorts\/([a-z0-9_-]{9,12})/i)) ||
     (match = url.match(/youtube\.com\/live\/([a-z0-9_-]{9,12})/i))
   ) {
-		return {
-			type: "youtube",
-			id: match[1],
-			url: url,
-			embedable: pref.get("embedYoutube")
-		};
-	}
-	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+\.(?:jpg|png))/i))) {
-		return {
-			type: "twitter",
-			id: match[1],
-			url: url,
-			embedable: pref.get("embedImage")
-		};
-	}
-	if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)(?:\?.*format=([\w]+))?/i))) {
+    return {
+      type: "youtube",
+      id: match[1],
+      url: url,
+      embedable: pref.get("embedYoutube")
+    };
+  }
+  if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+\.(?:jpg|png))/i))) {
+    return {
+      type: "twitter",
+      id: match[1],
+      url: url,
+      embedable: pref.get("embedImage")
+    };
+  }
+  if ((match = url.match(/\/\/pbs\.twimg\.com\/media\/([a-z0-9_-]+)(?:\?.*format=([\w]+))?/i))) {
     const ext = !match[2] || match[2] === "webp" ? ".jpg" : `.${match[2]}`;
-		return {
-			type: "twitter",
-			id: `${match[1]}${ext}`,
-			url: url,
-			embedable: pref.get("embedImage")
-		};
-	}
+    return {
+      type: "twitter",
+      id: `${match[1]}${ext}`,
+      url: url,
+      embedable: pref.get("embedImage")
+    };
+  }
   if ((match = url.match(/\bmeee\.com\.tw\/(\w+)(\.\w+)?/))) {
     return {
       type: "meee",
@@ -714,14 +705,14 @@ function getUrlInfo(url) {
       embedable: pref.get("embedImage"),
     }
   }
-	if (/^[^?#]+\.(?:jpg|png|gif|jpeg|webp|apng|avif|jfif|pjpeg|pjp|svg)(?:$|[?#])/i.test(url)) {
-		return {
-			type: "image",
-			id: null,
-			url: url,
-			embedable: pref.get("embedImage")
-		};
-	}
+  if (/^[^?#]+\.(?:jpg|png|gif|jpeg|webp|apng|avif|jfif|pjpeg|pjp|svg)(?:$|[?#])/i.test(url)) {
+    return {
+      type: "image",
+      id: null,
+      url: url,
+      embedable: pref.get("embedImage")
+    };
+  }
   if (/.*\.(?:mp4|webm|ogg)(?:$|[?#])/i.test(url)) {
     return {
       type: "video",
@@ -730,16 +721,16 @@ function getUrlInfo(url) {
       embedable: pref.get("embedVideo")
     };
   }
-	return {
-		type: "url",
-		id: null,
-		url: url,
-		embedable: false
-	};
+  return {
+    type: "url",
+    id: null,
+    url: url,
+    embedable: false
+  };
 }
 
 function createEmbed(info, container) {
-	if (info.type == "imgur") {
+  if (info.type == "imgur") {
     let extension = info.extension || ".jpg";
     if (extension === ".gif" && pref.get("imgurVideo")) {
       extension = ".mp4";
@@ -759,20 +750,20 @@ function createEmbed(info, container) {
     video.dataset.refererpolicy = "no-referrer";
     video.muted = true;
     return video;
-	}
-	if (info.type == "youtube") {
-		return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${mergeParams(new URL(info.url).search, pref.get("youtubeParameters"))}" frameborder="0" allowfullscreen></iframe></div></div>`;
-	}
-	if (info.type == "image") {
-		return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
-	}
+  }
+  if (info.type == "youtube") {
+    return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${mergeParams(new URL(info.url).search, pref.get("youtubeParameters"))}" frameborder="0" allowfullscreen></iframe></div></div>`;
+  }
+  if (info.type == "image") {
+    return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
+  }
   if (info.type == "video") {
     const video = document.createElement("video");
     video.controls = true;
     video.dataset.src = info.url;
     return video;
   }
-	if (info.type == "twitter") {
+  if (info.type == "twitter") {
     const urls = [
       `//pbs.twimg.com/media/${info.id}:orig`,
       `//pbs.twimg.com/media/${info.id.replace(/\.jpg\b/, ".png")}:orig`,
@@ -780,43 +771,43 @@ function createEmbed(info, container) {
       `//pbs.twimg.com/media/${info.id}`,
     ];
     return `<img data-src data-srcset="${urls.join(", ")}">`;
-	}
-	if (info.type == "imgur-album") {
-		container.textContent = "Loading album...";
-		request({
-			method: "GET",
-			url: `https://api.imgur.com/post/v1/albums/${info.id}?client_id=546c25a59c58ad7&include=media`,
+  }
+  if (info.type == "imgur-album") {
+    container.textContent = "Loading album...";
+    request({
+      method: "GET",
+      url: `https://api.imgur.com/post/v1/albums/${info.id}?client_id=546c25a59c58ad7&include=media`,
       responseType: "json",
-			onload(response) {
-				if (response.status < 200 || response.status >= 300) {
-					container.textContent = `${response.status} ${response.statusText}`;
-					return;
-				}
-				container.textContent = "";
+      onload(response) {
+        if (response.status < 200 || response.status >= 300) {
+          container.textContent = `${response.status} ${response.statusText}`;
+          return;
+        }
+        container.textContent = "";
         const urls = response.response.media.map(m => m.url);
         
-				let i = 0;
-				const loadImages = (count = Infinity) => {
+        let i = 0;
+        const loadImages = (count = Infinity) => {
           const els = [];
-					for (; i < urls.length && count--; i++) {
+          for (; i < urls.length && count--; i++) {
             els.push(createRichContent(getUrlInfo(urls[i])));
-					}
-					container.append(...els);
-				};
-				loadImages(pref.get("albumMaxSize"));
-				if (i < urls.length) {
-					const button = document.createElement("button");
-					button.textContent = `Load all images (${urls.length - i} more)`;
-					button.addEventListener('click', () => {
-						button.remove();
-						loadImages();
-					});
-					container.appendChild(button);
-				}
-			}
-		});
-		return;
-	}
+          }
+          container.append(...els);
+        };
+        loadImages(pref.get("albumMaxSize"));
+        if (i < urls.length) {
+          const button = document.createElement("button");
+          button.textContent = `Load all images (${urls.length - i} more)`;
+          button.addEventListener('click', () => {
+            button.remove();
+            loadImages();
+          });
+          container.appendChild(button);
+        }
+      }
+    });
+    return;
+  }
   if (info.type === "meee") {
     // https://greasyfork.org/zh-TW/scripts/28264-ptt-imgur-fix/discussions/302188
     let exts = [".jpg", ".jpeg", ".png", ".gif"];
@@ -858,7 +849,7 @@ function createEmbed(info, container) {
     sniffAndLoad();
     return;
   }
-	throw new Error(`Invalid type: ${info.type}`);
+  throw new Error(`Invalid type: ${info.type}`);
 }
 
 function mergeParams(origSearch, userSearch) {
