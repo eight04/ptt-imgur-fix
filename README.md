@@ -49,6 +49,10 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.2 (Mar 1, 2026)
+
+  - Change: stop using buggy video stream.
+
 * 0.10.1 (Feb 27, 2026)
 
   - Fix: imgur video doesn't load.
