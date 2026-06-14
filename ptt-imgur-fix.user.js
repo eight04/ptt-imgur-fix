@@ -3,7 +3,9 @@
 // @description	修正 Imgur 在 PTT 上的問題
 // @namespace   eight04.blogspot.com
 // @match https://www.ptt.cc/bbs/*.html
+// @match https://www.ptt.cc/bbs/*.html?*
 // @match https://www.ptt.cc/man/*.html
+// @match https://www.ptt.cc/man/*.html?*
 // @match https://term.ptt.cc/
 // @version     0.10.2
 // @author		eight
