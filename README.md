@@ -49,6 +49,10 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.3 (Jun 15, 2026)
+
+  - Add: match URL with query string.
+
 * 0.10.2 (Mar 1, 2026)
 
   - Change: stop using buggy video stream.
