@@ -453,7 +453,7 @@ function init() {
     }
     .lazy-target:not(.lazy-load-end) {
       /* give them a size so that we don't load them all at once */
-      min-height: 50vh;
+      margin-bottom: 50vh;
     }
     .resize-container::before {
       content: none;
