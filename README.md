@@ -49,6 +49,10 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.4 (Jul 15, 2026)
+
+  - Fix: use margin instead of height for placeholder.
+
 * 0.10.3 (Jun 15, 2026)
 
   - Add: match URL with query string.
