@@ -49,6 +49,10 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.5 (Jul 29, 2026)
+
+  - Add: refererWhitelist option.
+
 * 0.10.4 (Jul 15, 2026)
 
   - Fix: use margin instead of height for placeholder.
