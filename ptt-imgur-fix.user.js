@@ -37,18 +37,19 @@ const request = typeof GM_xmlhttpRequest === "function" ? GM_xmlhttpRequest : GM
 
 const pref = GM_webextPref({
   default: {
-    term: true,
-    embedYoutube: true,
-    meeeSniffExt: false,
-    youtubeParameters: "",
-    embedImage: true,
-    embedAlbum: false,
-    embedVideo: true,
     albumMaxSize: 5,
+    embedAlbum: false,
+    embedImage: true,
+    embedVideo: true,
+    embedYoutube: true,
     imgurVideo: false,
     lazyLoad: true,
-    maxWidth: "100%",
     maxHeight: "none",
+    maxWidth: "100%",
+    meeeSniffExt: false,
+    refererWhitelist: "i\\.verb\\.tw",
+    term: true,
+    youtubeParameters: "",
   },
   body: [
     {
@@ -111,6 +112,12 @@ const pref = GM_webextPref({
       label: "Maximum height of image",
       type: "text",
     },
+    {
+      key: "refererWhitelist",
+      label: "Allow images to receive referer header.",
+      help: "Each line is a regex pattern. If the image URL matches any of the patterns, the referer header will be sent.",
+      type: "textarea",
+    }
   ],
   navbar: false
 });
@@ -381,6 +388,33 @@ const lazyLoader = (() => {
     target.state = 'hidden';
   }
 
+})();
+
+const refererWhitelist = (() => {
+  let patterns = [];
+  pref.on('change', changes => {
+    if (changes.refererWhitelist == null) return;
+    updatePatterns();
+  });
+  updatePatterns();
+  return {test}
+
+  function test(url) {
+    for (const pattern of patterns) {
+      if (pattern.test(url)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function updatePatterns() {
+    patterns = pref.get('refererWhitelist')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line)
+      .map(line => new RegExp(line));
+  }
 })();
 
 document.addEventListener("beforescriptexecute", e => {
@@ -757,7 +791,8 @@ function createEmbed(info, container) {
     return `<div class="resize-container"><div class="resize-content"><iframe class="youtube-player" type="text/html" data-src="//www.youtube.com/embed/${info.id}?${mergeParams(new URL(info.url).search, pref.get("youtubeParameters"))}" frameborder="0" allowfullscreen></iframe></div></div>`;
   }
   if (info.type == "image") {
-    return `<img referrerpolicy="no-referrer" data-src="${info.url}">`;
+    const referer = refererWhitelist.test(info.url) ? "" : 'referrerpolicy="no-referrer"';
+    return `<img ${referer} data-src="${info.url}">`;
   }
   if (info.type == "video") {
     const video = document.createElement("video");
