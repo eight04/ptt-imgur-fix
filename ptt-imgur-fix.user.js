@@ -499,17 +499,23 @@ function init() {
       margin-left: auto;
       margin-right: auto;
     }
-    span[type=bbsrow] .richcontent {
-      display: flex;
-      margin-left: auto;
-      margin-right: auto;
-      justify-content: center;
-      .resize-container {
-        flex-grow: 1;
+    span[type=termrow] {
+      &:has(.richcontent) {
+        height: auto!important;
+        }
       }
-      iframe {
-        width: 100%;
-        height: 100%;
+      .richcontent {
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+        .resize-container {
+          flex-grow: 1;
+        }
+        iframe {
+          width: 100%;
+          height: 100%;
+        }
       }
     }
   `)
@@ -523,7 +529,7 @@ function init() {
 }
 
 function initTerm() {
-  const selector = "span[type=bbsrow] a:not(.embeded)";
+  const selector = "span[type=termrow] a:not(.embeded)";
   detectEasyReading({
     on: () => sentinel.on(selector, onLink),
     off: () => {
@@ -536,16 +542,16 @@ function initTerm() {
     node.classList.add("embeded");
     if (node.href) {
       const linkInfo = getLinkInfo(node);
-      const bbsRowDiv = node.closest("span[type=bbsrow] > div");
-      const hasDefaultContent = !bbsRowDiv.children[1].classList.contains("richcontent");
+      const bbsRowDiv = node.closest("span[type=termrow] > div");
+      const hasDefaultContentDiv = !bbsRowDiv.children[1].classList.contains("richcontent");
       if (linkInfo.embedable) {
         const richContent = createRichContent(linkInfo);
-        if (!hasDefaultContent) {
+        if (!hasDefaultContentDiv) {
           bbsRowDiv.appendChild(richContent);
         } else {
           bbsRowDiv.children[1].replaceWith(richContent);
         }
-      } else if (hasDefaultContent) {
+      } else if (hasDefaultContentDiv) {
         // remove default content under links
         bbsRowDiv.children[1].innerHTML = "";
       }
