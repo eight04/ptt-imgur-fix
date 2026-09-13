@@ -49,6 +49,10 @@ Compatibility
 Changelog
 ---------
 
+* 0.10.6 (Sep 14, 2026)
+
+  - Fix: doesn't work on term.ptt.cc.
+
 * 0.10.5 (Jul 29, 2026)
 
   - Add: refererWhitelist option.
